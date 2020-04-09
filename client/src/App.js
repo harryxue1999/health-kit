@@ -1,10 +1,11 @@
 import React from 'react';
-import { BrowserRouter as Browser, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Redirect, Switch } from 'react-router-dom';
 import { observer } from 'mobx-react';
 import logo from './logo.svg';
 import UserStore from './stores/UserStore';
 import RegisterForm from './RegisterForm';
 import UserPage from './UserPage';
+import LoginPage from './LoginPage';
 import './App.css';
 
 class App extends React.Component {
@@ -41,15 +42,21 @@ class App extends React.Component {
   }
 
   render() {
-    const UserView = UserStore.loggedIn
-      ? <UserPage store={UserStore} onClick={this.logout} />
-      : <RegisterForm />;
-    const Content = !UserStore.loading ? UserView : '';
+    if (UserStore.loading) return (<div></div>);
+
+    // Redirect to user page if logged in
+    const rootPage = UserStore.loggedIn ? (<Redirect to='/user'/>) : <RegisterForm/>;
 
     return (
-      <div className="App">
-        {Content}
-      </div>
+      <Router>
+        <div className="App">
+          <Switch>
+            <Route path="/user/:id"><LoginPage store={UserStore} onClick={this.logout}/></Route>
+            <Route exact path="/user"><UserPage store={UserStore} onClick={this.logout}/></Route>
+            <Route exact path="/">{rootPage}</Route>
+          </Switch>
+        </div>
+      </Router>
     );
   }
 

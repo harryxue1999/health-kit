@@ -11,7 +11,7 @@ router.post('/status', (req, res) => {
     const ssn = req.session;
     if (!ssn.loggedIn) res.json({ loggedIn: false });
     else {
-        const { loggedIn, email, name, url } = ssn;
+        const { email, name, url } = ssn; const loggedIn = true;
         res.json({ loggedIn, email, name, url });
     }
 });
@@ -64,6 +64,7 @@ router.post('/logout', (req, res) => {
 
 // Finds the current user
 router.post('/:hash', async (req, res) => {
+    const ssn = req.session;
     const email = decode(req.params.hash);
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ error: 'USER_NOT_FOUND' });
@@ -73,6 +74,12 @@ router.post('/:hash', async (req, res) => {
     ssn.email = email;
     ssn.name = name;
     return res.json({ loggedIn: true, email, name });
+});
+
+// Updates user information
+router.post('/', (req, res) => {
+    const ssn = req.session;
+    const ssnEmail = ssn.email;
 });
 
 
