@@ -6,7 +6,8 @@ class UserStore {
             loading: true,
             loggedIn: false,
             email: undefined,
-            name: undefined
+            name: undefined,
+            url: undefined,
         });
     }
 }

@@ -11,9 +11,8 @@ router.post('/status', (req, res) => {
     const ssn = req.session;
     if (!ssn.loggedIn) res.json({ loggedIn: false });
     else {
-        // const { loggedIn, email, name } = ssn;
-        const { loggedIn, email, name } = { loggedIn: true, email: 'hxue36@wisc.edu', name: '薛皓宇' };
-        res.json({ loggedIn, email, name });
+        const { loggedIn, email, name, url } = ssn;
+        res.json({ loggedIn, email, name, url });
     }
 });
 
@@ -22,7 +21,7 @@ router.post('/register', async (req, res) => {
     const ssn = req.session;
     const { email } = req.body;
 
-    // try {
+    try {
         // Checks if user already exists
         const userExists = await User.findOne( { email });
         if (userExists) {
@@ -41,7 +40,8 @@ router.post('/register', async (req, res) => {
             const mailObj = {
                 to: email,
                 subject: '请确认您的电子邮箱 Please verify your email',
-                text: '您好！请点击下面的链接确认邮箱地址。这个链接将是您登陆的唯一方式，请妥善保存！\n'
+                text: '您已经成功注册！\n'
+                    + '请点击下面的链接确认邮箱地址。这个链接将是您登陆的唯一方式，请妥善保存！\n'
                     + homeURL + `user/${encoded}`
             };
             mailgun.send(mailObj);
@@ -49,9 +49,9 @@ router.post('/register', async (req, res) => {
             return res.json({ url: encoded });
         }
 
-    // } catch (err) {
-    //     return res.status(400).json({ error: err });
-    // }
+    } catch (err) {
+        return res.status(400).json({ error: err });
+    }
    
 });
 
@@ -63,7 +63,7 @@ router.post('/logout', (req, res) => {
 });
 
 // Finds the current user
-router.get('/:hash', async (req, res) => {
+router.post('/:hash', async (req, res) => {
     const email = decode(req.params.hash);
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ error: 'USER_NOT_FOUND' });

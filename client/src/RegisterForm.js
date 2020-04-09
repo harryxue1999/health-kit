@@ -3,7 +3,7 @@ import React from 'react';
 export default class RegisterForm extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { email: '' }
+        this.state = { email: '', url: '' }
     }
 
     async submit(e) {
@@ -16,7 +16,7 @@ export default class RegisterForm extends React.Component {
             });
 
             const data = await res.json();
-      
+            this.setState({ url: data.url });
       
         } catch(e) {
             console.error(e);
