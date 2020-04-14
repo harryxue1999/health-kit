@@ -7,10 +7,9 @@ const mailgun = new Mailgun({ apiKey: mailAPIKey, domain: mailDomain });
 /**
  * Sends email with information specified by data
  * 
- * @param {Promise} data
+ * @param {Object} data
  */
 exports.send = function send (data) {
     data.from = data.from || mailSender;
     return mailgun.messages().send(data);
 }
-
