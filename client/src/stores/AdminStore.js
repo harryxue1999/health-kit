@@ -1,15 +1,15 @@
 import { extendObservable } from 'mobx';
 
-class UserStore {
+class AdminStore {
     constructor() {
         extendObservable(this, {
             loading: true,
             loggedIn: false,
             email: undefined,
             name: undefined,
-            url: undefined,
+            hasPerm: false,
         });
     }
 }
 
-export default new UserStore();
+export default new AdminStore();
