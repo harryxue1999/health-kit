@@ -4,5 +4,5 @@ node_modules/
 desktop.ini
 *.log
 *.csv
-compile/*.html
+compile/templates
 settings.json
