@@ -17,43 +17,43 @@ router.post('/status', (req, res) => {
 });
 
 // Registers a new user
-router.post('/register', async (req, res) => {
-    const ssn = req.session;
-    const { email } = req.body;
+// router.post('/register', async (req, res) => {
+//     const ssn = req.session;
+//     const { email } = req.body;
 
-    try {
-        // Checks if user already exists
-        const userExists = await User.findOne( { email });
-        if (userExists) {
-            ssn.email = email;
-            return res.status(409).json({ error: 'USER_EXISTS', email });
-        }
+//     try {
+//         // Checks if user already exists
+//         const userExists = await User.findOne( { email });
+//         if (userExists) {
+//             ssn.email = email;
+//             return res.status(409).json({ error: 'USER_EXISTS', email });
+//         }
 
-        // User doesn't exist, create new
-        else {
-            const newUser = new User({ email });
-            const data = await newUser.save();
-            ssn.email = data.email;
+//         // User doesn't exist, create new
+//         else {
+//             const newUser = new User({ email });
+//             const data = await newUser.save();
+//             ssn.email = data.email;
 
-            // Sends verification email
-            const encoded = encode(email);
-            const mailObj = {
-                to: email,
-                subject: '请确认您的电子邮箱 Please verify your email',
-                text: '您已经成功注册！\n'
-                    + '请点击下面的链接确认邮箱地址。这个链接将是您登陆的唯一方式，请妥善保存！\n'
-                    + homeURL + `user/${encoded}`
-            };
-            mailgun.send(mailObj);
+//             // Sends verification email
+//             const encoded = encode(email);
+//             const mailObj = {
+//                 to: email,
+//                 subject: '请确认您的电子邮箱 Please verify your email',
+//                 text: '您已经成功注册！\n'
+//                     + '请点击下面的链接确认邮箱地址。这个链接将是您登陆的唯一方式，请妥善保存！\n'
+//                     + homeURL + `user/${encoded}`
+//             };
+//             mailgun.send(mailObj);
 
-            return res.json({ url: encoded });
-        }
+//             return res.json({ url: encoded });
+//         }
 
-    } catch (err) {
-        return res.status(400).json({ error: err });
-    }
+//     } catch (err) {
+//         return res.status(400).json({ error: err });
+//     }
    
-});
+// });
 
 // Logs out a user
 router.post('/logout', (req, res) => {
@@ -65,15 +65,16 @@ router.post('/logout', (req, res) => {
 // Finds the current user
 router.post('/:hash', async (req, res) => {
     const ssn = req.session;
-    const email = decode(req.params.hash);
-    const user = await User.findOne({ email });
+    const wechat = decode(req.params.hash);
+    const user = await User.findOne({ wechat });
     if (!user) return res.status(404).json({ error: 'USER_NOT_FOUND' });
 
     const { name } = user;
     ssn.loggedIn = true;
+    ssn.wechat = wechat;
     ssn.email = email;
     ssn.name = name;
-    return res.json({ loggedIn: true, email, name });
+    return res.json({ loggedIn: true, email, wechat, name });
 });
 
 // Updates user information

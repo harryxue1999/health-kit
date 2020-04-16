@@ -36,12 +36,15 @@ app.use(session({
     cookie: {
         secure: settings.secure,
         httpOnly: true,
-        maxAge: 24 * 3600 * 1000, // 24 hours
+        maxAge: 24 * 3600 * 7 * 1000, // 7 days
     }
 }));
 
 // User API route
 app.use('/user', require('./user'));
+
+// Admin authentication route (via wisc.edu)
+app.use('/admin', require('./admin'));
 
 // Home
 app.get('*', (req, res) => { // jshint ignore:line
