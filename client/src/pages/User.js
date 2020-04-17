@@ -23,6 +23,7 @@ import UserStore from '../stores/UserStore';
 
 const validate = values => {
     const regexp = /^((\d+)(\s(N|S|E|W|NORTH|SOUTH|EAST|WEST)\.?)?(\s\d+(ST|ND|RD|TH)?)?(\s[A-Za-z]+\.?)*\s(HOUSES|HEIGHTS|HTS|AVENUE|AVE|ROAD|RD|WAY|ROW|BRAE|STREET|ST|COURT|CT|HARBOR|DRIVE|DR|LANE|LN|CIRCLE|CIR|BOULEVARD|BLVD|PARKWAY|PKWY|PASS|MALL|TERRACE|RUN|TRAIL|TRL|PLACE|PL)\.?)(([\w\.\,\s\-\#])*)/i;
+    const regexpStrict = /^((\d+)(\s(N|S|E|W|NORTH|SOUTH|EAST|WEST)\.?)?(\s\d+(ST|ND|RD|TH)?)?(\s[A-Za-z]+\.?)*\s(HOUSES|HEIGHTS|HTS|AVENUE|AVE|ROAD|RD|WAY|ROW|BRAE|STREET|ST|COURT|CT|HARBOR|DRIVE|DR|LANE|LN|CIRCLE|CIR|BOULEVARD|BLVD|PARKWAY|PKWY|PASS|MALL|TERRACE|RUN|TRAIL|TRL|PLACE|PL)\.?)(\s*((\d+[A-Z]?)|([A-Z])))?$/i;
     const errors = {};
     if (!values.name) {
         errors.name = 'Required';
@@ -39,9 +40,16 @@ const validate = values => {
     if (!/^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/.test(values.email)) {
         errors.email = '请确认email格式';
     }
-    if (!regexp.test(values.address)) {
+    // Strict address checking
+    if (values.area <= 1) {
+        if (!regexpStrict.test(values.address)) {
+            errors.address = '请填写 街号 街名 St|Ave|Ln|Rd... (房间号); 房间号前无需加"Apt", "Unit" 等前缀 | Example: 123 College Rd 305';
+        }
+    }
+    else if (!regexp.test(values.address)) {
         errors.address = '请填写标准US地址: 123 Street Name St|Ave|Pkwy|Ln|Ct|Rd... 房间号|宿舍号...'
     }
+
     return errors;
 };
 
