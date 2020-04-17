@@ -21,6 +21,16 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import UserStore from '../stores/UserStore';
 
+const symptomsList = [
+  '咳嗽', '发热', '乏力', '头痛', '咽痛', '气促',
+  '呼吸困难', '胸闷', '腹泻', '结膜充血', '其它症状'
+];
+
+const equipmentList = [
+  'N95-KN95口罩', '医用口罩', '手套',
+  '消毒湿巾', '退烧药或相关药品', '其它物资'
+];
+
 const validate = values => {
     const regexp = /^((\d+)(\s(N|S|E|W|NORTH|SOUTH|EAST|WEST)\.?)?(\s\d+(ST|ND|RD|TH)?)?(\s[A-Za-z]+\.?)*\s(HOUSES|HEIGHTS|HTS|AVENUE|AVE|ROAD|RD|WAY|ROW|BRAE|STREET|ST|COURT|CT|HARBOR|DRIVE|DR|LANE|LN|CIRCLE|CIR|BOULEVARD|BLVD|PARKWAY|PKWY|PASS|MALL|TERRACE|RUN|TRAIL|TRL|PLACE|PL)\.?)(([\w\.\,\s\-\#])*)/i;
     const regexpStrict = /^((\d+)(\s(N|S|E|W|NORTH|SOUTH|EAST|WEST)\.?)?(\s[A-Za-z]+\.?)*\s(HOUSES|HEIGHTS|HTS|AVENUE|AVE|ROAD|RD|WAY|ROW|BRAE|STREET|ST|COURT|CT|HARBOR|DRIVE|DR|LANE|LN|CIRCLE|CIR|BOULEVARD|BLVD|PARKWAY|PKWY|PASS|MALL|TERRACE|RUN|TRAIL|TRL|PLACE|PL)\.?)(\s*((\d+[A-Z]?)|([A-Z])))?$/i;
@@ -179,7 +189,7 @@ export default function UserPage() {
     if (!exists) return (
         <div style={{ padding: 16, margin: 'auto', maxWidth: 600, textAlign: "left" }}>
             <CssBaseline/>
-            <Typography variant="h4" align="center" component="h1" gutterBottom>
+            <Typography variant="h4" align="center" component="h1" gutterBottom style={{ paddingTop: 60 }}>
                 无法找到该用户
             </Typography>
         </div>
@@ -188,7 +198,7 @@ export default function UserPage() {
   return (
     <div style={{ padding: 16, margin: 'auto', maxWidth: 600, textAlign: "left" }}>
       <CssBaseline />
-      <Typography variant="h5" align="center" component="h1" gutterBottom>
+      <Typography variant="h5" align="center" component="h1" gutterBottom style={{ paddingTop: 60 }}>
         个人信息
       </Typography>
       <Form
@@ -364,129 +374,11 @@ export default function UserPage() {
                   <FormControl component="fieldset">
                     <FormLabel component="legend">是否出现以下不适症状（若无则无需选择）</FormLabel>
                     <FormGroup row>
-                      <FormControlLabel
-                        label="咳嗽"
-                        control={
-                          <Field
-                            name="symptoms"
-                            component={Checkbox}
-                            type="checkbox"
-                            value="咳嗽"
-                          />
-                        }
-                      />
-                      <FormControlLabel
-                        label="发热"
-                        control={
-                          <Field
-                            name="symptoms"
-                            component={Checkbox}
-                            type="checkbox"
-                            value="发热"
-                          />
-                        }
-                      />
-                      <FormControlLabel
-                        label="乏力"
-                        control={
-                          <Field
-                            name="symptoms"
-                            component={Checkbox}
-                            type="checkbox"
-                            value="乏力"
-                          />
-                        }
-                      />
-                      <FormControlLabel
-                        label="头痛"
-                        control={
-                          <Field
-                            name="symptoms"
-                            component={Checkbox}
-                            type="checkbox"
-                            value="头痛"
-                          />
-                        }
-                      />
-                      <FormControlLabel
-                        label="咽痛"
-                        control={
-                          <Field
-                            name="symptoms"
-                            component={Checkbox}
-                            type="checkbox"
-                            value="咽痛"
-                          />
-                        }
-                      />
-                      <FormControlLabel
-                        label="气促"
-                        control={
-                          <Field
-                            name="symptoms"
-                            component={Checkbox}
-                            type="checkbox"
-                            value="气促"
-                          />
-                        }
-                      />
-                      <FormControlLabel
-                        label="呼吸困难"
-                        control={
-                          <Field
-                            name="symptoms"
-                            component={Checkbox}
-                            type="checkbox"
-                            value="呼吸困难"
-                          />
-                        }
-                      />
-                      <FormControlLabel
-                        label="胸闷"
-                        control={
-                          <Field
-                            name="symptoms"
-                            component={Checkbox}
-                            type="checkbox"
-                            value="胸闷"
-                          />
-                        }
-                      />
-                      <FormControlLabel
-                        label="腹泻"
-                        control={
-                          <Field
-                            name="symptoms"
-                            component={Checkbox}
-                            type="checkbox"
-                            value="腹泻"
-                          />
-                        }
-                      />
-                      <FormControlLabel
-                        label="结膜充血"
-                        control={
-                          <Field
-                            name="symptoms"
-                            component={Checkbox}
-                            type="checkbox"
-                            value="结膜充血"
-                          />
-                        }
-                      />
-                      <FormControlLabel
-                        label="其它症状"
-                        control={
-                        <React.Fragment>
-                          <Field
-                            name="symptoms"
-                            component={Checkbox}
-                            type="checkbox"
-                            value="其它症状"
-                          />
-                        </React.Fragment>
-                        }
-                      />
+                      { symptomsList.map(item => (
+                        <FormControlLabel label={item} control={
+                          <Field name="symptoms" component={Checkbox} type="checkbox" value={item}/>
+                        }/>
+                      )) }
                     </FormGroup>
                   </FormControl>
                 </Grid>
@@ -494,72 +386,11 @@ export default function UserPage() {
                   <FormControl component="fieldset">
                     <FormLabel component="legend">目前已备有哪些防疫物资（若都没有则无需选择）</FormLabel>
                     <FormGroup row>
-                      <FormControlLabel
-                        label="N95-KN95口罩"
-                        control={
-                          <Field
-                            name="equipment"
-                            component={Checkbox}
-                            type="checkbox"
-                            value="N95-KN95口罩"
-                          />
-                        }
-                      />
-                      <FormControlLabel
-                        label="医用口罩"
-                        control={
-                          <Field
-                            name="equipment"
-                            component={Checkbox}
-                            type="checkbox"
-                            value="医用口罩"
-                          />
-                        }
-                      />
-                      <FormControlLabel
-                        label="手套"
-                        control={
-                          <Field
-                            name="equipment"
-                            component={Checkbox}
-                            type="checkbox"
-                            value="手套"
-                          />
-                        }
-                      />
-                      <FormControlLabel
-                        label="消毒湿巾"
-                        control={
-                          <Field
-                            name="equipment"
-                            component={Checkbox}
-                            type="checkbox"
-                            value="消毒湿巾"
-                          />
-                        }
-                      />
-                      <FormControlLabel
-                        label="退烧药或相关药品"
-                        control={
-                          <Field
-                            name="equipment"
-                            component={Checkbox}
-                            type="checkbox"
-                            value="退烧药或相关药品"
-                          />
-                        }
-                      />
-                      <FormControlLabel
-                        label="其它物资"
-                        control={
-                          <Field
-                            name="equipment"
-                            component={Checkbox}
-                            type="checkbox"
-                            value="其他物资"
-                          />
-                        }
-                      />
+                      { equipmentList.map(item => (
+                        <FormControlLabel label={item} control={
+                            <Field name="equipment" component={Checkbox} type="checkbox" value={item}/>
+                        }/>
+                      )) }
                     </FormGroup>
                   </FormControl>
                 </Grid>
