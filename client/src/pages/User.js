@@ -1,65 +1,9 @@
-// import React from 'react';
-// import { withRouter } from 'react-router-dom';
-// import Button from '@material-ui/core/Button';
-// import CheckBox from '@material-ui/core/Checkbox';
-// import FormControl from '@material-ui/core/FormControl';
-// import FormGroup from '@material-ui/core/FormGroup';
-// import FormLabel from '@material-ui/core/FormLabel';
-// import FormControlLabel from '@material-ui/core/FormControlLabel';
-// import InputLabel from '@material-ui/core/InputLabel';
-// import MenuItem from '@material-ui/core/MenuItem';
-// import RadioGroup from '@material-ui/core/RadioGroup';
-// import { Form, Field } from 'react-final-form';
-// import { TextField, Checkbox, Radio, Select } from 'final-form-material-ui';
-
-// class UserPage extends React.Component {
-//     constructor(props) {
-//         super(props);
-//         this.state = {
-//             name: '',
-//             number: '',
-//             email: '',
-//             wechat: '',
-//             identity: '',
-//             area: 0,
-//             address: '',
-//             addr1: '',
-//             addr2: '',
-//             kids: false,
-//             symptoms: [],
-//             equipment: [],
-//             info: '',
-//             priority: false,
-//             need: true,
-//             delivered: false
-//         };
-//     }
-
-//     async componentDidMount() {
-//         const { hash } = this.props.match.params;
-//         const res = await fetch('/user/' + hash, { method: 'POST' });
-//         const data = await res.json();
-
-//         this.setState({ ...data.user });
-//     }
-
-//     render() {
-//         return (
-//             <Form onSumbit={()=>{}}
-//             ></Form>
-//         )
-//     }
-// }
-
-// export default withRouter(UserPage);
-
 import React, { useState, useEffect } from 'react';
-import { Redirect, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Form, Field } from 'react-final-form';
-import { TextField, Checkbox, Select } from 'final-form-material-ui';
+import { TextField, Checkbox, Radio, Select } from 'final-form-material-ui';
 import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
-import Link from '@material-ui/core/Link';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -68,6 +12,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import RadioGroup from '@material-ui/core/RadioGroup';
 import Collapse from '@material-ui/core/Collapse'
 import Alert from '@material-ui/lab/Alert'
 import Dialog from '@material-ui/core/Dialog';
@@ -77,7 +22,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import UserStore from '../stores/UserStore';
 
 const validate = values => {
-    const regexp = /^((\d+)(\s(N|S|E|W|NORTH|SOUTH|EAST|WEST)\.?)?(\s\d+(ST|ND|RD|TH)?)?(\s[A-Za-z]+\.?)*(\s(HOUSES|HEIGHTS|HTS|AVENUE|AVE|ROAD|RD|WAY|ROW|BRAE|STREET|ST|COURT|CT|HARBOR|DRIVE|DR|LANE|LN|CIRCLE|CIR|BOULEVARD|BLVD|PARKWAY|PKWY|PASS|MALL|TERRACE|RUN|TRAIL|TRL|PLACE|PL)\.?))(([\w\.\,\s\-\#])*)/i;
+    const regexp = /^((\d+)(\s(N|S|E|W|NORTH|SOUTH|EAST|WEST)\.?)?(\s\d+(ST|ND|RD|TH)?)?(\s[A-Za-z]+\.?)*\s(HOUSES|HEIGHTS|HTS|AVENUE|AVE|ROAD|RD|WAY|ROW|BRAE|STREET|ST|COURT|CT|HARBOR|DRIVE|DR|LANE|LN|CIRCLE|CIR|BOULEVARD|BLVD|PARKWAY|PKWY|PASS|MALL|TERRACE|RUN|TRAIL|TRL|PLACE|PL)\.?)(([\w\.\,\s\-\#])*)/i;
     const errors = {};
     if (!values.name) {
         errors.name = 'Required';
@@ -102,7 +47,6 @@ const validate = values => {
 
 export default function UserPage() {
     const [user, setUser] = useState({
-        timestamp: 0,
         name: '',
         phone: 0,
         email: '',
@@ -116,9 +60,9 @@ export default function UserPage() {
         symptoms: [],
         equipment: [],
         info: '',
-        priority: false,
-        need: true,
-        delivered: false
+        need: false,
+        kitNeeded: false,
+        hasKids: false,
     });
     const [exists, setExists] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -135,13 +79,17 @@ export default function UserPage() {
             setExists(true);
         
             const {
-                timestamp, name, phone, email, wechat, identity, area, address,
-                addr1, addr2, kid, symptoms, equipment, info, priority, need, delivered
+                name, phone, email, wechat, identity, area, address,
+                addr1, addr2, kids, symptoms, equipment, info, need
             } = data.user;
 
+            const kitNeeded = need ? 'yes' : 'no';
+            const hasKids = kids ? 'yes' : 'no';
+
             setUser({
-                timestamp, name, phone, email, wechat, identity, area, address,
-                addr1, addr2, kid, symptoms, equipment, info, priority, need, delivered
+                name, phone, email, wechat, identity, area, address,
+                addr1, addr2, kids, symptoms, equipment, info, need,
+                kitNeeded, hasKids
             });
             UserStore.wechat = wechat;
         }
@@ -150,6 +98,11 @@ export default function UserPage() {
     }
 
     async function finalSubmit (values) {
+        values.need = values.kitNeeded === 'yes';
+        values.kids = values.hasKids === 'yes';
+
+        console.log(values);
+
         // Normal submission flow
         const res = await fetch(`/user/${hash}/update`, {
             method: 'POST',
@@ -164,13 +117,17 @@ export default function UserPage() {
         if (hash !== data.hash) setRedirect(data.hash);
 
         const {
-            timestamp, name, phone, email, wechat, identity, area, address,
-            addr1, addr2, kid, symptoms, equipment, info, priority, need, delivered
+            name, phone, email, wechat, identity, area, address,
+            addr1, addr2, kids, symptoms, equipment, info, need
         } = data.user;
 
+        const kitNeeded = need ? 'yes' : 'no';
+        const hasKids = kids ? 'yes' : 'no';
+
         setUser({
-            timestamp, name, phone, email, wechat, identity, area, address,
-            addr1, addr2, kid, symptoms, equipment, info, priority, need, delivered
+            name, phone, email, wechat, identity, area, address,
+            addr1, addr2, kids, symptoms, equipment, info, need,
+            kitNeeded, hasKids
         });
         UserStore.wechat = wechat;
 
@@ -182,7 +139,6 @@ export default function UserPage() {
 
     async function confirmSubmit() {
         setDialogOpen(false);
-        console.log('OK?');
         const { values } = UserStore;
         const res = await fetch('/user/unique', {
             method: 'POST',
@@ -228,29 +184,45 @@ export default function UserPage() {
   return (
     <div style={{ padding: 16, margin: 'auto', maxWidth: 600, textAlign: "left" }}>
       <CssBaseline />
-      <Typography variant="h4" align="center" component="h1" gutterBottom>
-        信息表
+      <Typography variant="h5" align="center" component="h1" gutterBottom>
+        个人信息
       </Typography>
       <Form
         onSubmit={onSubmit}
         initialValues={user}
         validate={validate}
-        render={({ handleSubmit, reset, submitting, pristine, values }) => (
+        render={({ handleSubmit, submitting, pristine, values }) => (
           <form onSubmit={handleSubmit} noValidate>
             <Paper style={{ padding: 16 }}>
               <Grid container alignItems="flex-start" spacing={2}>
                 <Grid item xs={12}>
-                  <FormLabel component="legend">健康包需求</FormLabel>
-                  <FormControlLabel
-                    label="我需要一份健康包"
-                    control={
-                      <Field
-                        name="need"
-                        component={Checkbox}
-                        type="checkbox"
+                  <FormControl component="fieldset">
+                    <FormLabel component="legend">是否需要健康包</FormLabel>
+                    <RadioGroup row>
+                      <FormControlLabel
+                        label="需要"
+                        control={
+                          <Field
+                            name="kitNeeded"
+                            component={Radio}
+                            type="radio"
+                            value="yes"
+                          />
+                        }
                       />
-                    }
-                  />
+                      <FormControlLabel
+                        label="不需要"
+                        control={
+                          <Field
+                            name="kitNeeded"
+                            component={Radio}
+                            type="radio"
+                            value="no"
+                          />
+                        }
+                      />
+                    </RadioGroup>
+                  </FormControl>
                 </Grid>
                 <Grid item xs={4}>
                   <Field
@@ -356,17 +328,33 @@ export default function UserPage() {
                   </Field>
                 </Grid>
                 <Grid item xs={12}>
-                  <FormLabel component="legend">子女情况</FormLabel>
-                  <FormControlLabel
-                    label="我携带子女"
-                    control={
-                      <Field
-                        name="kids"
-                        component={Checkbox}
-                        type="checkbox"
+                  <FormControl component="fieldset">
+                    <FormLabel component="legend">是否携带子女</FormLabel>
+                    <RadioGroup row>
+                      <FormControlLabel
+                        label="是"
+                        control={
+                          <Field
+                            name="hasKids"
+                            component={Radio}
+                            type="radio"
+                            value="yes"
+                          />
+                        }
                       />
-                    }
-                  />
+                      <FormControlLabel
+                        label="否"
+                        control={
+                          <Field
+                            name="hasKids"
+                            component={Radio}
+                            type="radio"
+                            value="no"
+                          />
+                        }
+                      />
+                    </RadioGroup>
+                  </FormControl>
                 </Grid>
                 <Grid item>
                   <FormControl component="fieldset">
@@ -424,17 +412,6 @@ export default function UserPage() {
                             component={Checkbox}
                             type="checkbox"
                             value="咽痛"
-                          />
-                        }
-                      />
-                      <FormControlLabel
-                        label="乏力"
-                        control={
-                          <Field
-                            name="symptoms"
-                            component={Checkbox}
-                            type="checkbox"
-                            value="乏力"
                           />
                         }
                       />
@@ -616,9 +593,9 @@ export default function UserPage() {
             <Collapse in={visible}>
                 <Alert severity="success">信息更新成功！</Alert>
             </Collapse>
-            <Typography variant="h6" align="center" component="h1" gutterBottom>
+            {/* <Typography variant="h6" align="center" component="h1" gutterBottom>
                 {`${window.location.origin}/user/${hash}`}
-            </Typography>
+            </Typography> */}
             <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
                 <DialogTitle>修改微信号将会同时修改您的主页URL。确认继续吗？</DialogTitle>
                 <DialogContent>

@@ -23,6 +23,7 @@ exports.User = mongoose.model('User', new mongoose.Schema({
     equipment: Array,
     info: { type: String },
     priority: { type: Boolean, default: false },
-    need: { type: Boolean, default: true },
+    need: { type: Boolean, default: false },
+    linkViewed: { type: Boolean, default: false },
     delivered: { type: Boolean, default: false },
 }));

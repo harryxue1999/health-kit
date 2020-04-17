@@ -21,11 +21,12 @@ const TOKEN_LINK = 'https://accounts.google.com/o/oauth2/v2/auth?' + querystring
 // Checks admin loggedIn status
 router.post('/status', (req, res) => {
     const ssn = req.session;
-
-    ssn.loggedIn = true;
-    ssn.hasPerm = true;
-    ssn.adminName = 'Awesome Tester';
-    ssn.adminEmail = 'tester@awesome.com';
+    
+    // Debug purposes
+    // ssn.loggedIn = true;
+    // ssn.hasPerm = true;
+    // ssn.adminName = 'Awesome Tester';
+    // ssn.adminEmail = 'tester@awesome.com';
 
     if (!ssn.loggedIn) return res.json({ loggedIn: false });
 

@@ -4,9 +4,9 @@ const crypto = require('crypto');
 const router = require('express').Router();
 const moment = require('moment');
 const { User } = require('./database');
-const { KEY, IV, homeURL } = require('./settings.json');
+const { KEY, IV } = require('./settings.json');
 
-const REGEXP = /^((\d+)(\s(N|S|E|W|NORTH|SOUTH|EAST|WEST)\.?)?(\s\d+(ST|ND|RD|TH)?)?(\s[A-Za-z]+\.?)*(\s(HOUSES|HEIGHTS|HTS|AVENUE|AVE|ROAD|RD|WAY|ROW|BRAE|STREET|ST|COURT|CT|HARBOR|DRIVE|DR|LANE|LN|CIRCLE|CIR|BOULEVARD|BLVD|PARKWAY|PKWY|PASS|MALL|TERRACE|RUN|TRAIL|TRL|PLACE|PL)\.?))(([\w\.\,\s\-\#])*)/i;
+const REGEXP = /^((\d+)(\s(N|S|E|W|NORTH|SOUTH|EAST|WEST)\.?)?(\s\d+(ST|ND|RD|TH)?)?(\s[A-Za-z]+\.?)*\s(HOUSES|HEIGHTS|HTS|AVENUE|AVE|ROAD|RD|WAY|ROW|BRAE|STREET|ST|COURT|CT|HARBOR|DRIVE|DR|LANE|LN|CIRCLE|CIR|BOULEVARD|BLVD|PARKWAY|PKWY|PASS|MALL|TERRACE|RUN|TRAIL|TRL|PLACE|PL)\.?)(([\w\.\,\s\-\#])*)/i;
 
 // Check if wechat is unique
 router.post('/unique', async (req, res) => {
@@ -36,9 +36,16 @@ router.post('/:hash', async (req, res) => {
         const user = await User.findOne({ wechat });
         if (!user) return res.json({ error: 'USER_NOT_FOUND' });
 
+        // Update link viewed status
+        if (!user.linkViewed) {
+            const stagingUser = await User.findOneAndUpdate({ wechat }, { linkViewed: true });
+            if (!stagingUser) return res.json({ error: 'LINK_VIEW_UPDATE_FAILED '});
+        }
+
+        user.linkViewed = true;
         return res.json({ user, hash: req.params.hash });
     } catch (e) {
-        res.status(400).end({ error: 'BAD_REQUEST' });
+        res.status(400).json({ error: 'BAD_REQUEST' });
     }
 });
 
@@ -68,8 +75,8 @@ function normalizeAddress(addr) {
     const matched = address.match(REGEXP);
     if (matched === null) return [ '', '' ];
     return [
-        matched[1].trim().replace(/EAGLE HTS$/g, 'EAGLE HEIGHTS DR'),
-        matched[10].trim().replace(/(APT|APARTMENT|ROOM|RM|SUITE|UNIT)([A-Z])/g, '$1 $2')
+        matched[1].trim().replace(/EAGLE HTS$/g, 'EAGLE HEIGHTS DR').replace(/(\d+)( ST)/g, '$1 STATE$2'),
+        matched[9].trim().replace(/(APT|APARTMENT|ROOM|RM|SUITE|UNIT)([A-Z])/g, '$1 $2')
     ];
 }
 
