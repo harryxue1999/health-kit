@@ -101,8 +101,6 @@ export default function UserPage() {
         values.need = values.kitNeeded === 'yes';
         values.kids = values.hasKids === 'yes';
 
-        console.log(values);
-
         // Normal submission flow
         const res = await fetch(`/user/${hash}/update`, {
             method: 'POST',
@@ -110,8 +108,6 @@ export default function UserPage() {
             body: JSON.stringify(values)
         });
         const data = await res.json();
-
-        console.log(data);
 
         // Check if redirect needed
         if (hash !== data.hash) setRedirect(data.hash);

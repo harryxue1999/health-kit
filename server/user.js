@@ -75,7 +75,7 @@ function normalizeAddress(addr) {
     const matched = address.match(REGEXP);
     if (matched === null) return [ '', '' ];
     return [
-        matched[1].trim().replace(/EAGLE HTS$/g, 'EAGLE HEIGHTS DR').replace(/(\d+)( ST)/g, '$1 STATE$2'),
+        matched[1].trim().replace(/EAGLE HTS$/g, 'EAGLE HEIGHTS DR'),
         matched[9].trim().replace(/(APT|APARTMENT|ROOM|RM|SUITE|UNIT)([A-Z])/g, '$1 $2')
     ];
 }
