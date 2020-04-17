@@ -61,7 +61,7 @@ class App extends React.Component {
         <Router>
           <div className="App">
             <Switch>
-              <Route path="/user/:id"><UserPage/></Route>
+              <Route exact path="/user/:hash"><UserPage/></Route>
               {/* <Route exact path="/user"></Route> */}
               <Route exact path="/">{indexPage}</Route>
             </Switch>

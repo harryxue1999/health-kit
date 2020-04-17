@@ -126,6 +126,6 @@ export default class AdminPage extends React.Component {
                 <h1>{email} - 无权限</h1>
                 <Button variant="contained" color="primary" href="/admin/logout">请您退出登录</Button>
             </React.Fragment>
-        )
+        );
     }
 }

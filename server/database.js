@@ -8,6 +8,7 @@ const dbURL = require('./settings.json').dbURL;
 mongoose.connect(dbURL, { useNewUrlParser: true, useUnifiedTopology: true }).then(() => console.log('MongoDB connected!'));
 
 exports.User = mongoose.model('User', new mongoose.Schema({
+    timestamp: Number,
     name: String,
     phone: Number,
     email: String,
