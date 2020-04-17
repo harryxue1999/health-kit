@@ -1,4 +1,5 @@
 import React from 'react';
+import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Table from '@material-ui/core/Table'
@@ -60,7 +61,7 @@ export default class AdminPage extends React.Component {
         return userArray.map(user => (
             <TableRow key={user.wechat}>
                 <TableCell>
-                    <Button variant="outlined" onClick={() => this.showDialog(user)}>投递</Button>
+                    <Button size="small" variant="outlined" onClick={() => this.showDialog(user)}>投递</Button>
                 </TableCell>
                 <TableCell>{user.name}</TableCell>
                 {/* <TableCell>{user.email}</TableCell> */}
@@ -77,7 +78,9 @@ export default class AdminPage extends React.Component {
 
         if (hasPerm) return (
             <React.Fragment>
-                <h1>{name} {email}</h1>
+                <Typography variant="h5" align="center" component="h1" gutterBottom style={{ paddingTop: 80 }}>
+                    { `${name}: ${email}` }
+                </Typography>
                 <Button variant="contained" color="primary" href="/admin/logout">退出登录</Button>
                 <br/><br/>
                 <ButtonGroup size="small">
@@ -123,7 +126,9 @@ export default class AdminPage extends React.Component {
 
         else return (
             <React.Fragment>
-                <h1>{email} - 无权限</h1>
+                <Typography variant="h5" align="center" component="h1" gutterBottom style={{ paddingTop: 80 }}>
+                    {email} - 无权限
+                </Typography>
                 <Button variant="contained" color="primary" href="/admin/logout">请您退出登录</Button>
             </React.Fragment>
         );

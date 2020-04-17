@@ -69,7 +69,8 @@ function App() {
   const indexPage = AdminStore.loggedIn ? <AdminPage store={AdminStore}/> : <RootPage/>;
 
   return (
-    <ThemeProvider theme={theme}>
+    // <ThemeProvider theme={theme}>
+    <>
       <AppBar position="fixed">
         <ToolBar>
           <Typography variant="h6">CSSA健康包分发</Typography>
@@ -78,13 +79,14 @@ function App() {
       <Router>
         <div className="App">
           <Switch>
-            <Route exact path="/user/:hash"><UserPage/></Route>
+            <Route exact path="/user/:hash"><UserPage theme={theme}/></Route>
             {/* <Route exact path="/user"></Route> */}
             <Route exact path="/">{indexPage}</Route>
           </Switch>
         </div>
       </Router>
-    </ThemeProvider>
+    </>
+    // </ThemeProvider>
   );
 }
 
