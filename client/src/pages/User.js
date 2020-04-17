@@ -43,11 +43,11 @@ const validate = values => {
     // Strict address checking
     if (values.area <= 1) {
         if (!regexpStrict.test(values.address)) {
-            errors.address = '请填写 街号 街名 St|Ave|Ln|Rd... (房间号); 房间号前无需加"Apt", "Unit" 等前缀 | Example: 123 College Rd 305';
+            errors.address = '请填写 街号 街名 St|Ave|Ln|Rd... (房间号); 房间号前无需加"Apt", "Unit" 等前缀，也无需填写城市名、zipcode等 | Example: 123 College Rd 305';
         }
     }
     else if (!regexp.test(values.address)) {
-        errors.address = '请填写标准US地址: 123 Street Name St|Ave|Pkwy|Ln|Ct|Rd... 房间号|宿舍号...'
+        errors.address = '请填写标准US地址: 123 Street Name St|Ave|Pkwy|Ln|Ct|Rd... 房间号|宿舍号...';
     }
 
     return errors;
@@ -160,7 +160,7 @@ export default function UserPage() {
 
     async function onSubmit (values) {
         UserStore.values = values;
-        if (values.wechat !== UserStore.wechat) {
+        if (values.wechat.toLowerCase() !== UserStore.wechat) {
             setDialogOpen(true);
         }
         
