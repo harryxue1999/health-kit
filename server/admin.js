@@ -8,9 +8,13 @@ const querystring = require('querystring');
 const settings = require('./settings.json');
 const adminlist = require('./adminlist.json');
 const parse = addr => querystring.parse(url.parse(addr).query);
+const fs = require('fs');
+const path = require('path');
 
 const { User } = require('./database');
+const mustache = require('mustache');
 const mailgun = require('./mailgun');
+const template = fs.readFileSync(path.join(__dirname, '../compile/templates/delivered.html'), 'utf-8');
 
 const TOKEN_LINK = 'https://accounts.google.com/o/oauth2/v2/auth?' + querystring.stringify({
     client_id: settings.client.id,
@@ -24,11 +28,11 @@ router.post('/status', (req, res) => {
     const ssn = req.session;
     
     // Debug purposes
-    // ssn.loggedIn = true;
-    // ssn.hasPerm = true;
-    // ssn.adminName = 'Awesome Tester';
-    // ssn.adminEmail = 'tester@awesome.com';
-    // ssn.adminPerm = '.*';
+    ssn.loggedIn = true;
+    ssn.hasPerm = true;
+    ssn.adminName = 'Awesome Tester';
+    ssn.adminEmail = 'tester@awesome.com';
+    ssn.adminPerm = '.*';
 
     if (!ssn.loggedIn) return res.json({ loggedIn: false });
 
@@ -56,7 +60,25 @@ router.post('/deliver', async (req, res) => {
     const { io } = res.locals;
     io.emit('delivery', { wechat });
 
-    return res.json({ success: 'SUCCESS' });
+    const { name, area } = user;
+    const isOnCampus = area === 0 || area === 1 || area === 4;
+    const isSheboygan = area === 2;
+    const isEagleHeights = area === 3;
+    // Send email
+    let emailContent = mustache.render(template, {
+        name,
+        isOnCampus,
+        isSheboygan,
+        isEagleHeights,
+    });
+
+    const response = await mailgun.send({
+        subject: isOnCampus ? '健康包：已送达' : '健康包：已自取',
+        to: user.email,
+        html: emailContent
+    });
+
+    return res.json({ success: 'SUCCESS', response });
 });
 
 // Gets all undelivered users in database
