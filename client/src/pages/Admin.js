@@ -31,7 +31,10 @@ export default class AdminPage extends React.Component {
             maxRows: 20,
             pageNum: 1,
             dialogOpen: false,
-            dialogUser: {},
+            dialogUser: {
+                symptoms: [],
+                equipment: []
+            },
             nameFilterBar: false,
             addrFilterBar: false,
             confirmDialog: false,
@@ -54,22 +57,14 @@ export default class AdminPage extends React.Component {
     }
 
     showDialog(user) {
-        const { kids, equipment, symptoms, info } = user;
-        const hasKid = kids ? '有小孩' : '';
-        const hasSymptoms = symptoms.length > 0 ? '有症状;   ' : '';
-        const equipmentList = equipment.join(', ');
-        const otherInfo = info ? ';  其它信息: ' + info : '';
-        const dialogContent = `${hasSymptoms}防疫物资：${equipmentList || '无'} ${otherInfo}`;
-
         this.setState({
             dialogOpen: true,
-            dialogUser: user,
-            dialogContent
+            dialogUser: user
         });
     }
 
     async deliver() {
-        const { users, sorted, dialogUser } = this.state;
+        const { dialogUser } = this.state;
         const { wechat } = dialogUser;
 
         this.setState({ confirmDialog: false });
@@ -99,7 +94,7 @@ export default class AdminPage extends React.Component {
         const { users, sorted } = this.state;
 
         const newUsersList = users.filter(a => a.wechat !== wechat);
-        const newSortedList  = users.filter(a => a.wechat !== wechat);
+        const newSortedList  = sorted.filter(a => a.wechat !== wechat);
 
         this.setState({ users: newUsersList, sorted: newSortedList });
     }
@@ -117,7 +112,7 @@ export default class AdminPage extends React.Component {
             return (
                 <TableRow key={user.wechat}>
                     <TableCell>
-                        <Fab color={user.priority ? "primary" : user.need ? "inherit" : "secondary"} size="small" variant="outlined" onClick={() => this.showDialog(user)}>
+                        <Fab color={user.priority ? "secondary" : user.need ? "primary" : "inherit"} size="small" variant="outlined" onClick={() => this.showDialog(user)}>
                             <InfoIcon/>
                         </Fab>
                     </TableCell>
@@ -249,7 +244,9 @@ export default class AdminPage extends React.Component {
                 <Dialog open={this.state.dialogOpen} onClose={() => this.setState({ dialogOpen: false })}>
                     <DialogTitle>{this.state.dialogUser.name}</DialogTitle>
                     <DialogContent>
-                        <DialogContentText>{this.state.dialogContent}</DialogContentText>
+                        <DialogContentText>{this.state.dialogUser.kids ? '有小孩' : ''}</DialogContentText>
+                        <DialogContentText>{this.state.dialogUser.symptoms.length > 0 ? '有症状' : ''}</DialogContentText>
+                        <DialogContentText>防疫物资：{this.state.dialogUser.equipment.join(', ') || '无'}</DialogContentText>
                         <DialogContentText>邮件：{this.state.dialogUser.email}</DialogContentText>
                         <DialogContentText>微信：{this.state.dialogUser.wechat}</DialogContentText>
                         <DialogContentText>电话：{this.state.dialogUser.phone}</DialogContentText>

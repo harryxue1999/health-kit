@@ -11,8 +11,7 @@ import ToolBar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography'
 
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
-import { red, green } from '@material-ui/core/colors';
+import { createMuiTheme } from '@material-ui/core/styles';
 
 
 function App() {
@@ -42,20 +41,6 @@ function App() {
     }
 
     AdminStore.loading = false;
-  }
-
-  // Handles logout
-  async function logout() {
-    try {
-      const res = await fetch('/user/logout', { method: 'POST' });
-      const data = await res.json();
-
-      if (data.success) AdminStore.loggedIn = false;
-      else throw new Error('Logout unsuccessful');
-
-    } catch(e) {
-      // No change in loggedIn state
-    }
   }
 
   useEffect(() => {
