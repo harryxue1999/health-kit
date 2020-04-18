@@ -28,6 +28,7 @@ router.post('/status', (req, res) => {
     // ssn.hasPerm = true;
     // ssn.adminName = 'Awesome Tester';
     // ssn.adminEmail = 'tester@awesome.com';
+    // ssn.adminPerm = '.*';
 
     if (!ssn.loggedIn) return res.json({ loggedIn: false });
 
@@ -63,7 +64,7 @@ router.get('/all', async (req, res) =>{
     const ssn = req.session;
     if (!ssn.hasPerm) return res.json({ error: 'Unauthorized '});
 
-    const users = await User.find({ delivered: false });
+    const users = await User.find({ delivered: false, addr1: { $regex: ssn.adminPerm } });
     return res.json(users);
 });
 
@@ -167,12 +168,18 @@ function getUserEmail (req) {
     }).then(data => {
         data = JSON.parse(data);
         const adminEmail = data.email;
-        const adminName = adminlist[adminEmail];
+        const adminArr = adminlist[adminEmail];
+        let adminName, adminPerm;
+        if (adminArr) {
+            adminName = adminArr[0];
+            adminPerm = adminArr[1];
+        }
 
         ssn.loggedIn = true;
         ssn.adminEmail = adminEmail;
         ssn.hasPerm = data.hd === 'wisc.edu' && typeof adminName !== 'undefined';
         ssn.adminName = ssn.hasPerm ? adminName : 'unauthorized';
+        ssn.adminPerm = adminPerm;
         log('Logged in to admin portal: %s <%s> (%s)', ssn.adminName, ssn.adminEmail, ssn.ip);
         return Promise.resolve();
     }).catch(err => Promise.reject(err));
