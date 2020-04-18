@@ -40,6 +40,11 @@ app.use(session({
     }
 }));
 
+app.use((req, res, next) => {
+    res.locals.io = io;
+    next();
+});
+
 // User API route
 app.use('/user', require('./user'));
 

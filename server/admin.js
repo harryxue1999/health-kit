@@ -10,6 +10,7 @@ const adminlist = require('./adminlist.json');
 const parse = addr => querystring.parse(url.parse(addr).query);
 
 const { User } = require('./database');
+const mailgun = require('./mailgun');
 
 const TOKEN_LINK = 'https://accounts.google.com/o/oauth2/v2/auth?' + querystring.stringify({
     client_id: settings.client.id,
@@ -23,10 +24,10 @@ router.post('/status', (req, res) => {
     const ssn = req.session;
     
     // Debug purposes
-    // ssn.loggedIn = true;
-    // ssn.hasPerm = true;
-    // ssn.adminName = 'Awesome Tester';
-    // ssn.adminEmail = 'tester@awesome.com';
+    ssn.loggedIn = true;
+    ssn.hasPerm = true;
+    ssn.adminName = 'Awesome Tester';
+    ssn.adminEmail = 'tester@awesome.com';
 
     if (!ssn.loggedIn) return res.json({ loggedIn: false });
 
@@ -38,12 +39,31 @@ router.post('/status', (req, res) => {
     });
 });
 
-// Gets all users in database
+router.post('/deliver', async (req, res) => {
+    const ssn = req.session;
+    if (!ssn.loggedIn || !ssn.hasPerm) return res.json({ error: 'NO_PERMISSION' });
+
+    const { wechat } = req.body;
+    const user = await User.findOne({ wechat, delivered: false });
+
+    if (!user) return res.json({ error: 'ALREADY_DELIVERED' });
+
+    const newUser = await user.updateOne({ delivered: true });
+
+    if (!newUser) return res.json({ error: 'UNKNOWN_USER' });
+
+    const { io } = res.locals;
+    io.emit('delivery', { wechat });
+
+    return res.json({ success: 'SUCCESS' });
+});
+
+// Gets all undelivered users in database
 router.get('/all', async (req, res) =>{
     const ssn = req.session;
     if (!ssn.hasPerm) return res.json({ error: 'Unauthorized '});
 
-    const users = await User.find();
+    const users = await User.find({ delivered: false });
     return res.json(users);
 });
 
