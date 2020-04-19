@@ -19,6 +19,12 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import InfoIcon from '@material-ui/icons/Info';
+import Checkbox from '@material-ui/core/Checkbox';
+import FormLabel from '@material-ui/core/FormLabel';
+import FormControl from '@material-ui/core/FormControl';
+import FormGroup from '@material-ui/core/FormGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormHelperText from '@material-ui/core/FormHelperText';
 import io from 'socket.io-client';
 
 export default class AdminPage extends React.Component {
@@ -35,13 +41,12 @@ export default class AdminPage extends React.Component {
                 symptoms: [],
                 equipment: []
             },
-            nameFilterBar: false,
-            addrFilterBar: false,
             confirmDialog: false,
             success: false,
             error: false,
             nameVal: '',
-            addrVal: ''
+            addrVal: '',
+            deliverable: false,
         };
     }
 
@@ -53,7 +58,17 @@ export default class AdminPage extends React.Component {
 
         const res = await fetch('/admin/all');
         const data = await res.json();
-        this.setState({ users: data, sorted: data });
+
+        const newData= data.sort((a, b) => {
+            const numFormat = /^\d+/g;
+            const matchA = a.addr1.match(numFormat);
+            const matchB = b.addr1.match(numFormat);
+
+            if (!(matchA && matchB)) return a.addr1.localeCompare(b.addr2);
+            else return +matchA - matchB;
+        });
+
+        this.setState({ users: newData, sorted: newData });
     }
 
     showDialog(user) {
@@ -112,7 +127,7 @@ export default class AdminPage extends React.Component {
             return (
                 <TableRow key={user.wechat}>
                     <TableCell>
-                        <Fab color={user.priority ? "secondary" : user.need ? "primary" : "inherit"} size="small" variant="outlined" onClick={() => this.showDialog(user)}>
+                        <Fab color={user.priority ? "secondary" : user.need ? "primary" : "inherit"} size="small" onClick={() => this.showDialog(user)}>
                             <InfoIcon/>
                         </Fab>
                     </TableCell>
@@ -162,6 +177,16 @@ export default class AdminPage extends React.Component {
         this.setState({ sorted, pageNum: 1 });
     }
 
+    showOnlyDeliverable(option) {
+        const { sorted, users } = this.state;
+
+        if (option) return this.setState({ sorted: users });
+
+        const newSorted = sorted.filter(a => a.area <= 4);
+
+        this.setState({ sorted: newSorted });
+    }
+
     render() {
         const { email, name, hasPerm } = this.props.store;
         const { sorted, maxRows, pageNum } = this.state;
@@ -193,7 +218,23 @@ export default class AdminPage extends React.Component {
                     onClick={() => this.setState({ pageNum: pageNum + 1 })}
                     >下一页</Button>
                 </ButtonGroup>
-
+                <br/>
+                <Button size="small" onClick={() => this.setState({ filterBar: !this.state.filterBar })}>Filter</Button>
+                <Collapse in={this.state.filterBar}>
+                    <FormControl component="fieldset">
+                        <FormGroup>
+                            <FormControlLabel
+                                control={<Checkbox name="deliverable"
+                                checked={this.state.deliverable}/>}
+                                onChange={e => {
+                                    this.setState({ deliverable: !this.state.deliverable })
+                                    this.showOnlyDeliverable(this.state.deliverable);
+                                }}
+                                label="只显示可送达区域"
+                            />
+                        </FormGroup>
+                    </FormControl>
+                </Collapse>
                 {/* Tables here */}
                 <TableContainer component={Paper}>
                     <Table>
@@ -257,7 +298,7 @@ export default class AdminPage extends React.Component {
                     </DialogActions>
                 </Dialog>
                 <Dialog open={this.state.confirmDialog} onClose={() => this.setState({ confirmDialog: false })}>
-                    <DialogTitle>确认已将健康包递送至{this.state.dialogUser.name}?</DialogTitle>
+                    <DialogTitle>确认已将健康包递送至{this.state.dialogUser.name} @ {this.state.dialogUser.addr2}?</DialogTitle>
                     <DialogContent>
                         <DialogContentText>此操作无法撤回，请再次确认健康包已送达！</DialogContentText>
                     </DialogContent>
