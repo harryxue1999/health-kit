@@ -1,6 +1,6 @@
 {
   "name": "health-kit",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -13,7 +13,7 @@
   },
   "keywords": [],
   "author": "Harry Xue",
-  "license": "ISC",
+  "license": "AGPL-3.0+",
   "bugs": {
     "url": "https://github.com/harryxue1999/health-kit/issues"
   },
