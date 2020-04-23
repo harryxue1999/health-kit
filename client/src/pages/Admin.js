@@ -20,11 +20,9 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import InfoIcon from '@material-ui/icons/Info';
 import Checkbox from '@material-ui/core/Checkbox';
-import FormLabel from '@material-ui/core/FormLabel';
 import FormControl from '@material-ui/core/FormControl';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import FormHelperText from '@material-ui/core/FormHelperText';
 import io from 'socket.io-client';
 
 export default class AdminPage extends React.Component {
@@ -193,7 +191,7 @@ export default class AdminPage extends React.Component {
         const { length } = sorted;
 
         if (hasPerm) return (
-            <Paper>
+            <div style={{ padding: 16, margin: 'auto' }}>
                 <Typography variant="h5" align="center" component="h1" gutterBottom style={{ paddingTop: 80 }}>
                     { `${name}: ${email}` }
                 </Typography>
@@ -307,16 +305,16 @@ export default class AdminPage extends React.Component {
                         <Button color="primary" onClick={() => this.deliver()}>确认</Button>
                     </DialogActions>
                 </Dialog>
-            </Paper>
+            </div>
         );
 
         else return (
-            <Paper>
+            <div>
                 <Typography variant="h5" align="center" component="h1" gutterBottom style={{ paddingTop: 80 }}>
                     {email} - 无权限
                 </Typography>
                 <Button variant="contained" color="primary" href="/admin/logout">请您退出登录</Button>
-            </Paper>
+            </div>
         );
     }
 }

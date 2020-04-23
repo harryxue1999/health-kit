@@ -6,7 +6,6 @@ import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
-import CssBaseline from '@material-ui/core/CssBaseline';
 import FormLabel from '@material-ui/core/FormLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormGroup from '@material-ui/core/FormGroup';
@@ -15,12 +14,6 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import Collapse from '@material-ui/core/Collapse'
 import Alert from '@material-ui/lab/Alert'
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import UserStore from '../stores/UserStore';
-import { ThemeProvider } from '@material-ui/core/styles';
 
 const symptomsList = [
   '咳嗽', '发热', '乏力', '头痛', '咽痛', '气促',
@@ -125,9 +118,7 @@ export default function UserSecondPassPage({ theme }) {
     // )
 
   return (
-    <ThemeProvider theme={theme}>
     <div style={{ padding: 16, margin: 'auto', maxWidth: 600, textAlign: "left" }}>
-      <CssBaseline />
       <Typography variant="h5" align="center" component="h1" gutterBottom style={{ paddingTop: 60 }}>
         个人信息
       </Typography>
@@ -385,7 +376,6 @@ export default function UserSecondPassPage({ theme }) {
         )}
       />
     </div>
-    </ThemeProvider>
   );
 }
 

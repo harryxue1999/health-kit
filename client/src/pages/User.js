@@ -20,7 +20,6 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import UserStore from '../stores/UserStore';
-import { ThemeProvider } from '@material-ui/core/styles';
 
 const symptomsList = [
   '咳嗽', '发热', '乏力', '头痛', '咽痛', '气促',
@@ -188,20 +187,16 @@ export default function UserPage({ theme }) {
     if (loading) return null;
 
     if (!exists) return (
-      <ThemeProvider theme={theme}>
         <div style={{ padding: 16, margin: 'auto', maxWidth: 600, textAlign: "left" }}>
-            <CssBaseline/>
-            <Typography variant="h4" align="center" component="h1" gutterBottom style={{ paddingTop: 60 }}>
-                无法找到该用户
-            </Typography>
+          <CssBaseline/>
+          <Typography variant="h4" align="center" component="h1" gutterBottom style={{ paddingTop: 60 }}>
+              无法找到该用户
+          </Typography>
         </div>
-      </ThemeProvider>
     )
 
   return (
-    <ThemeProvider theme={theme}>
     <div style={{ padding: 16, margin: 'auto', maxWidth: 600, textAlign: "left" }}>
-      <CssBaseline />
       <Typography variant="h5" align="center" component="h1" gutterBottom style={{ paddingTop: 60 }}>
         个人信息
       </Typography>
@@ -457,7 +452,6 @@ export default function UserPage({ theme }) {
         )}
       />
     </div>
-    </ThemeProvider>
   );
 }
 

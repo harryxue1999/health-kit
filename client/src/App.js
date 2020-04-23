@@ -12,6 +12,7 @@ import Typography from '@material-ui/core/Typography'
 
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
+import CssBaseline from '@material-ui/core/CssBaseline';
 
 
 function App() {
@@ -61,7 +62,6 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
-    <>
       <AppBar position="fixed">
         <ToolBar>
           <img className="app-logo" src={logo}/>
@@ -70,15 +70,15 @@ function App() {
       </AppBar>
       <Router>
         <div className="App">
+          <CssBaseline/>
           <Switch>
-            <Route exact path="/user/:hash"><UserPage theme={theme}/></Route>
-            {/* <Route exact path="/signup"><SignupPage theme={theme}/></Route> */}
+            <Route exact path="/user/:hash"><UserPage/></Route>
+            {/* <Route exact path="/signup"><SignupPage/></Route> */}
             {/* <Route exact path="/user"></Route> */}
             <Route exact path="/">{indexPage}</Route>
           </Switch>
         </div>
       </Router>
-    </>
     </ThemeProvider>
   );
 }
