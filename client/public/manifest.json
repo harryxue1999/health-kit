@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "CSSA健康包分发",
+  "name": "CSSA at UW-Madison健康包追踪、分发系统",
   "icons": [
     {
       "src": "favicon.ico",

@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { observer } from 'mobx-react';
 import logo from './logo.svg';
 import AdminStore from './stores/AdminStore';
-import { AdminPage, RootPage, UserPage } from './pages';
+import { AdminPage, RootPage, SignupPage, UserPage, UserPageSecondPass } from './pages';
 import './App.css';
 
 import AppBar from '@material-ui/core/AppBar';
@@ -11,7 +11,7 @@ import ToolBar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography'
 
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import { createMuiTheme } from '@material-ui/core/styles';
+import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 
 
 function App() {
@@ -20,7 +20,13 @@ function App() {
 
   const theme = React.useMemo(() => createMuiTheme({
     palette: {
-      type: prefersDarkMode ? 'dark' : 'light'
+      type: prefersDarkMode ? 'dark' : 'light',
+      primary: {
+        main: '#92151a'
+      },
+      secondary: {
+        main: '#d7ccc8'
+      }
     }
   }), [ prefersDarkMode ]);
   
@@ -45,7 +51,7 @@ function App() {
 
   useEffect(() => {
     fetchInfo();
-  }, []);
+  }, ['']);
 
 
   if (AdminStore.loading) return (<div></div>);
@@ -54,10 +60,11 @@ function App() {
   const indexPage = AdminStore.loggedIn ? <AdminPage store={AdminStore}/> : <RootPage/>;
 
   return (
-    // <ThemeProvider theme={theme}>
+    <ThemeProvider theme={theme}>
     <>
       <AppBar position="fixed">
         <ToolBar>
+          <img className="app-logo" src={logo}/>
           <Typography variant="h6">CSSA健康包分发</Typography>
         </ToolBar>
       </AppBar>
@@ -65,13 +72,14 @@ function App() {
         <div className="App">
           <Switch>
             <Route exact path="/user/:hash"><UserPage theme={theme}/></Route>
+            {/* <Route exact path="/signup"><SignupPage theme={theme}/></Route> */}
             {/* <Route exact path="/user"></Route> */}
             <Route exact path="/">{indexPage}</Route>
           </Switch>
         </div>
       </Router>
     </>
-    // </ThemeProvider>
+    </ThemeProvider>
   );
 }
 

@@ -193,7 +193,7 @@ export default class AdminPage extends React.Component {
         const { length } = sorted;
 
         if (hasPerm) return (
-            <>
+            <Paper>
                 <Typography variant="h5" align="center" component="h1" gutterBottom style={{ paddingTop: 80 }}>
                     { `${name}: ${email}` }
                 </Typography>
@@ -307,16 +307,16 @@ export default class AdminPage extends React.Component {
                         <Button color="primary" onClick={() => this.deliver()}>确认</Button>
                     </DialogActions>
                 </Dialog>
-            </>
+            </Paper>
         );
 
         else return (
-            <>
+            <Paper>
                 <Typography variant="h5" align="center" component="h1" gutterBottom style={{ paddingTop: 80 }}>
                     {email} - 无权限
                 </Typography>
                 <Button variant="contained" color="primary" href="/admin/logout">请您退出登录</Button>
-            </>
+            </Paper>
         );
     }
 }
