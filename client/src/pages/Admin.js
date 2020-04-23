@@ -125,7 +125,7 @@ export default class AdminPage extends React.Component {
             return (
                 <TableRow key={user.wechat}>
                     <TableCell>
-                        <Fab color={user.priority ? "secondary" : user.need ? "primary" : "inherit"} size="small" onClick={() => this.showDialog(user)}>
+                        <Fab color={user.priority ? "primary" : user.need ? "secondary" : "inherit"} size="small" onClick={() => this.showDialog(user)}>
                             <InfoIcon/>
                         </Fab>
                     </TableCell>
