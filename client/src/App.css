@@ -12,3 +12,8 @@
     height: 30px;
   }
 }
+
+.MuiTableContainer-root td,
+.MuiTableContainer-root th {
+  font-size: 0.8rem;
+}

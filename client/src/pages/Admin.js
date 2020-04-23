@@ -235,7 +235,7 @@ export default class AdminPage extends React.Component {
                 </Collapse>
                 {/* Tables here */}
                 <TableContainer component={Paper}>
-                    <Table>
+                    <Table style={{wordBreak: 'break-all' }}>
                         <TableHead>
                             <TableRow>
                                 <TableCell style={{ paddingBottom: 0 }}>Action</TableCell>
