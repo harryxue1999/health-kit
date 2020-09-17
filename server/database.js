@@ -13,6 +13,7 @@ exports.User = mongoose.model('Sep2020', new mongoose.Schema({
     email: { type: String, unique: true },
     wechat: String,
     location: Number,
+    time: String,
     kids: { type: Boolean, default: false },
     symptoms: Array,
     equipment: Array,

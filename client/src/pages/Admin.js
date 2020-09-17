@@ -78,14 +78,14 @@ export default class AdminPage extends React.Component {
 
     async deliver() {
         const { dialogUser } = this.state;
-        const { wechat } = dialogUser;
+        const { email } = dialogUser;
 
         this.setState({ confirmDialog: false });
 
         const res = await fetch('/admin/deliver', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ wechat })
+            body: JSON.stringify({ email })
         });
         const data = await res.json();
 
@@ -103,11 +103,11 @@ export default class AdminPage extends React.Component {
     }
 
     // Socket delivery event emitted
-    onDelivery({ wechat }) {
+    onDelivery({ email }) {
         const { users, sorted } = this.state;
 
-        const newUsersList = users.filter(a => a.wechat !== wechat);
-        const newSortedList  = sorted.filter(a => a.wechat !== wechat);
+        const newUsersList = users.filter(a => a.email !== email);
+        const newSortedList  = sorted.filter(a => a.email !== email);
 
         this.setState({ users: newUsersList, sorted: newSortedList });
     }
@@ -123,15 +123,15 @@ export default class AdminPage extends React.Component {
         return sortedArray.map(user => {
             
             return (
-                <TableRow key={user.wechat}>
+                <TableRow key={user.email}>
                     <TableCell>
-                        <Fab color={user.priority ? "primary" : user.need ? "secondary" : "inherit"} size="small" onClick={() => this.showDialog(user)}>
+                        <Fab color={user.priority ? "primary" : "inherit"} size="small" onClick={() => this.showDialog(user)}>
                             <InfoIcon/>
                         </Fab>
                     </TableCell>
                     <TableCell>{user.name}</TableCell>
-                    <TableCell>{user.addr1}</TableCell>
-                    <TableCell>{user.addr2}</TableCell>
+                    <TableCell>{user.location}</TableCell>
+                    <TableCell>{user.time}</TableCell>
                 </TableRow>
             );
 
@@ -225,10 +225,9 @@ export default class AdminPage extends React.Component {
                                 control={<Checkbox name="deliverable"
                                 checked={this.state.deliverable}/>}
                                 onChange={e => {
-                                    this.setState({ deliverable: !this.state.deliverable })
-                                    this.showOnlyDeliverable(this.state.deliverable);
+                                   
                                 }}
-                                label="只显示可送达区域"
+                                label="没有用的选项框"
                             />
                         </FormGroup>
                     </FormControl>
@@ -253,7 +252,7 @@ export default class AdminPage extends React.Component {
                                 <TableCell>
                                     <TextField
                                     size="small"
-                                    label="地址..."
+                                    label="区域..."
                                     type="text"
                                     onChange={e => {
                                         // this.setState({ nameVal: '' });
@@ -261,7 +260,7 @@ export default class AdminPage extends React.Component {
                                     }}
                                 />
                                 </TableCell>
-                                <TableCell style={{ paddingBottom: 0 }}>门牌号</TableCell>
+                                <TableCell style={{ paddingBottom: 0 }}>时间</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>{this.showUsers(this.state.pageNum - 1)}</TableBody>
@@ -296,9 +295,9 @@ export default class AdminPage extends React.Component {
                     </DialogActions>
                 </Dialog>
                 <Dialog open={this.state.confirmDialog} onClose={() => this.setState({ confirmDialog: false })}>
-                    <DialogTitle>确认已将健康包递送至{this.state.dialogUser.name} @ {this.state.dialogUser.addr2}?</DialogTitle>
+                    <DialogTitle>确认已健康包已经送达{this.state.dialogUser.name} @ {this.state.dialogUser.location}?</DialogTitle>
                     <DialogContent>
-                        <DialogContentText>此操作无法撤回，请再次确认健康包已送达！</DialogContentText>
+                        <DialogContentText>此操作无法撤回，请再次确认健康包已收到！</DialogContentText>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => this.setState({ confirmDialog: false })}>取消</Button>
