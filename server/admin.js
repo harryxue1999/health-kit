@@ -48,8 +48,8 @@ router.post('/deliver', async (req, res) => {
     const ssn = req.session;
     if (!ssn.loggedIn || !ssn.hasPerm) return res.json({ error: 'NO_PERMISSION' });
 
-    const { wechat } = req.body;
-    const user = await User.findOne({ wechat, delivered: false });
+    const { email } = req.body;
+    const user = await User.findOne({ email, delivered: false });
 
     if (!user) return res.json({ error: 'ALREADY_DELIVERED' });
 
@@ -58,7 +58,7 @@ router.post('/deliver', async (req, res) => {
     if (!newUser) return res.json({ error: 'UNKNOWN_USER' });
 
     const { io } = res.locals;
-    io.emit('delivery', { wechat });
+    io.emit('delivery', { email });
 
     const { name, area } = user;
     const isOnCampus = area === 0 || area === 1 || area === 4;
@@ -86,7 +86,7 @@ router.get('/all', async (req, res) =>{
     const ssn = req.session;
     if (!ssn.hasPerm) return res.json({ error: 'Unauthorized '});
 
-    const users = await User.find({ delivered: false, addr1: { $regex: ssn.adminPerm } });
+    const users = await User.find({ delivered: false });
     return res.json(users);
 });
 
