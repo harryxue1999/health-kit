@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { observer } from 'mobx-react';
 import logo from './logo.svg';
@@ -8,7 +8,10 @@ import './App.css';
 
 import AppBar from '@material-ui/core/AppBar';
 import ToolBar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography'
+import Typography from '@material-ui/core/Typography';
+import IconButton from '@material-ui/core/IconButton';
+import LightModeIcon from '@material-ui/icons/WbSunny';
+import DarkModeIcon from '@material-ui/icons/NightsStay';
 
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
@@ -18,10 +21,13 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 function App() {
 
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+  console.log(prefersDarkMode);
 
-  const theme = React.useMemo(() => createMuiTheme({
+  const [darkMode, setDarkMode] = useState(useMediaQuery('(prefers-color-scheme: dark)'));
+
+  const darkTheme = createMuiTheme({
     palette: {
-      type: prefersDarkMode ? 'dark' : 'light',
+      type: 'dark',
       primary: {
         main: '#92151a'
       },
@@ -29,7 +35,19 @@ function App() {
         main: '#d7ccc8'
       }
     }
-  }), [ prefersDarkMode ]);
+  });
+
+  const lightTheme = createMuiTheme({
+    palette: {
+      type: 'light',
+      primary: {
+        main: '#92151a'
+      },
+      secondary: {
+        main: '#d7ccc8'
+      }
+    }
+  });
   
   // Gets current user login status when page loads
   async function fetchInfo() {
@@ -61,11 +79,14 @@ function App() {
   const indexPage = AdminStore.loggedIn ? <AdminPage store={AdminStore}/> : <RootPage/>;
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={!darkMode ? darkTheme : lightTheme}>
       <AppBar position="fixed">
         <ToolBar>
           <img className="app-logo" src={logo}/>
           <Typography variant="h6">CSSA健康包分发</Typography>
+          <IconButton color="inherit" onClick={() => setDarkMode(!darkMode)} aria-label="Toggle Light/Dark mode">
+            {!darkMode ? <DarkModeIcon/> : <LightModeIcon/>}
+          </IconButton>
         </ToolBar>
       </AppBar>
       <Router>
