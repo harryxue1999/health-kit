@@ -85,6 +85,7 @@ export default function UserPage({ theme }) {
     const [timeSelectDialogOpen, setTimeSelectDialogOpen] = useState(false);
     const [timeOkDialogOpen, setTimeOkDialogOpen] = useState(false);
     const [timeBadDialogOpen, setTimeBadDialogOpen] = useState(false);
+    const [timeBadConfirmDialogOpen, setTimeBadConfirmDialogOpen] = useState(false);
     const [userProposedTime, setUserProposedTime] = useState('');
     const { hash } = useParams();
 
@@ -174,6 +175,7 @@ export default function UserPage({ theme }) {
       });
     
       setTimeBadDialogOpen(false);
+      setTimeBadConfirmDialogOpen(true);
   }
 
     async function finalSubmit (values) {
@@ -503,6 +505,17 @@ export default function UserPage({ theme }) {
                         <Button onClick={() => {setTimeSelectDialogOpen(true); setTimeBadDialogOpen(false);}}>返回</Button>
                         <Button color="primary" onClick={timeBadConfirm}>确认时间段</Button>
                     </DialogActions>
+            </Dialog>
+            <Dialog open={timeBadConfirmDialogOpen}>
+            <DialogTitle>已提交！</DialogTitle>
+                  <DialogContent>
+                    <DialogContentText>我们的工作人员将会尽快为您安排一个时间，请您注意查收邮件</DialogContentText>
+                    <DialogContentText>--------</DialogContentText>
+                    <DialogContentText>您填写的时间段：{userProposedTime}</DialogContentText>
+                  </DialogContent>
+                  <DialogActions>
+                      <Button color="primary" onClick={() => setTimeBadConfirmDialogOpen(false)}>OK</Button>
+                  </DialogActions>
             </Dialog>
             {/* <pre>{JSON.stringify(values, 0, 2)}</pre> */}
     </div>
