@@ -87,6 +87,7 @@ export default function UserPage({ theme }) {
     const [timeBadDialogOpen, setTimeBadDialogOpen] = useState(false);
     const [timeBadConfirmDialogOpen, setTimeBadConfirmDialogOpen] = useState(false);
     const [userProposedTime, setUserProposedTime] = useState('');
+    const [timeBadConfirmButtonDisabled, setTimeBadConfirmButtonDisabled] = useState(true);
     const { hash } = useParams();
 
     async function fetchInfo() {
@@ -494,16 +495,18 @@ export default function UserPage({ theme }) {
                     <MuiTextField
                       autoFocus
                       fullWidth
+                      required
                       type="text"
                       label={"原定时间：" + user.time}
                       onChange={e => {
+                          setTimeBadConfirmButtonDisabled(!e.target.value.trim());
                           setUserProposedTime(e.target.value);
                       }}
                     />
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => {setTimeSelectDialogOpen(true); setTimeBadDialogOpen(false);}}>返回</Button>
-                        <Button color="primary" onClick={timeBadConfirm}>确认时间段</Button>
+                        <Button disabled={timeBadConfirmButtonDisabled} color="primary" onClick={timeBadConfirm}>确认时间段</Button>
                     </DialogActions>
             </Dialog>
             <Dialog open={timeBadConfirmDialogOpen}>
