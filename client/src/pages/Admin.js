@@ -19,11 +19,19 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import InfoIcon from '@material-ui/icons/Info';
+import AssignmentTurnedInIcon from '@material-ui/icons/AssignmentTurnedIn';
+import CheckBoxIcon from '@material-ui/icons/CheckBox';
+import DoneIcon from '@material-ui/icons/Done';
+import WarningIcon from '@material-ui/icons/Warning';
+import HourglassEmptyIcon from '@material-ui/icons/HourglassEmpty';
+import ContactSupportIcon from '@material-ui/icons/ContactSupport';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControl from '@material-ui/core/FormControl';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import io from 'socket.io-client';
+
+const locationMap = [ 'Humanities', 'Sheboygan', 'Eagle Heights' ];
 
 export default class AdminPage extends React.Component {
 
@@ -53,18 +61,13 @@ export default class AdminPage extends React.Component {
 
         const socket = io();
         socket.on('delivery', data => this.onDelivery(data));
+        socket.on('timeChange', data => this.onTimeChange(data));
+        socket.on('userConfirm', data => this.onUserConfirm(data));
 
         const res = await fetch('/admin/all');
         const data = await res.json();
 
-        const newData= data.sort((a, b) => {
-            const numFormat = /^\d+/g;
-            const matchA = a.addr1.match(numFormat);
-            const matchB = b.addr1.match(numFormat);
-
-            if (!(matchA && matchB)) return a.addr1.localeCompare(b.addr2);
-            else return +matchA - matchB;
-        });
+        const newData = data.sort((a, b) => a.time.localeCompare(b.time) );
 
         this.setState({ users: newData, sorted: newData });
     }
@@ -112,6 +115,46 @@ export default class AdminPage extends React.Component {
         this.setState({ users: newUsersList, sorted: newSortedList });
     }
 
+    // Socket time change event emitted
+    onTimeChange({ email, newTime }) {
+        const { users, sorted } = this.state;
+
+        let usersCopy = users;
+        let sortedCopy = sorted;
+
+        const userIndex = users.findIndex(u => u.email === email);
+        const newUser = Object.assign({}, users[userIndex], { time: newTime, timeOk: false, timeBad: false });
+        usersCopy[userIndex] = newUser;
+        
+        const sortedIndex = sorted.findIndex(u => u.email === email);
+        const newSorted = Object.assign({}, sorted[sortedIndex], { time: newTime, timeOk: false, timeBad: false });
+        sortedCopy[sortedIndex] = newSorted;
+
+        if (newUser.email === this.state.dialogUser.email) this.setState({ dialogUser: newUser });
+
+        this.setState({ users: usersCopy, sorted: sortedCopy });
+    }
+
+    // Socket user confirm event emitted
+    onUserConfirm({ email, timeOk, timeBad, proposedTime }) {
+        const { users, sorted } = this.state;
+
+        let usersCopy = users;
+        let sortedCopy = sorted;
+
+        const userIndex = users.findIndex(u => u.email === email);
+        const newUser = Object.assign({}, users[userIndex], { timeOk, timeBad, proposedTime });
+        usersCopy[userIndex] = newUser;
+        
+        const sortedIndex = sorted.findIndex(u => u.email === email);
+        const newSorted = Object.assign({}, sorted[sortedIndex], { timeOk, timeBad, proposedTime });
+        sortedCopy[sortedIndex] = newSorted;
+
+        if (newUser.email === this.state.dialogUser.email) this.setState({ dialogUser: newUser });
+
+        this.setState({ users: usersCopy, sorted: sortedCopy });
+    }
+
     // Display users based on some filter
     showUsers (pageIndex) {
         const { sorted, maxRows } = this.state;
@@ -126,11 +169,11 @@ export default class AdminPage extends React.Component {
                 <TableRow key={user.email}>
                     <TableCell>
                         <Fab color={user.priority ? "primary" : "inherit"} size="small" onClick={() => this.showDialog(user)}>
-                            <InfoIcon/>
+                            {!user.timeOk && !user.timeBad ? (<ContactSupportIcon/>) : user.timeBad ? (<WarningIcon/>) : (<AssignmentTurnedInIcon/>)}
                         </Fab>
                     </TableCell>
                     <TableCell>{user.name}</TableCell>
-                    <TableCell>{user.location}</TableCell>
+                    <TableCell>{locationMap[user.location]}</TableCell>
                     <TableCell>{user.time}</TableCell>
                 </TableRow>
             );
@@ -153,8 +196,8 @@ export default class AdminPage extends React.Component {
         this.setState({ sorted, pageNum: 1 });
     }
 
-    // Find by address (match) and sort by Apartment num
-    findAndSortAddr(addr) {
+    // Find by location and sort by time
+    findLocationAndSort(addr) {
         
         if (!addr) {
             this.setState({ sorted: this.state.users });
@@ -162,15 +205,14 @@ export default class AdminPage extends React.Component {
         }
         const regexp = new RegExp(addr.trim(), 'i');
         const { users } = this.state;
-        
-        const sorted = users.filter(a => regexp.test(a.addr1)).sort((a, b) => {
-            const numFormat = /^\d+/g;
-            const matchA = a.addr2.match(numFormat);
-            const matchB = b.addr2.match(numFormat);
 
-            if (!(matchA && matchB)) return a.addr2.localeCompare(b.addr2);
-            else return +matchA - +matchB;
-        });
+        const target = regexp.test('humanities') ? 0
+            : regexp.test('sheboygan') ? 1
+            : regexp.test('eagle') ? 2 : -1;
+        
+        const sorted = users
+            .filter(a => a.location === target)
+            .sort((a, b) => a.time.localeCompare(b.time));
 
         this.setState({ sorted, pageNum: 1 });
     }
@@ -256,9 +298,8 @@ export default class AdminPage extends React.Component {
                                     type="text"
                                     onChange={e => {
                                         // this.setState({ nameVal: '' });
-                                        this.findAndSortAddr(e.target.value);
-                                    }}
-                                />
+                                        this.findLocationAndSort(e.target.value);
+                                    }}/>
                                 </TableCell>
                                 <TableCell style={{ paddingBottom: 0 }}>时间</TableCell>
                             </TableRow>
@@ -280,28 +321,50 @@ export default class AdminPage extends React.Component {
                     >下一页</Button>
                 </ButtonGroup>
                 <Dialog open={this.state.dialogOpen} onClose={() => this.setState({ dialogOpen: false })}>
-                    <DialogTitle>{this.state.dialogUser.name}</DialogTitle>
+                    <DialogTitle>{this.state.dialogUser.name} @ {this.state.dialogUser.time}</DialogTitle>
                     <DialogContent>
                         <DialogContentText>{this.state.dialogUser.kids ? '有小孩' : ''}</DialogContentText>
                         <DialogContentText>{this.state.dialogUser.symptoms.length > 0 ? '有症状' : ''}</DialogContentText>
+                        <DialogContentText>{this.state.dialogUser.travel ? '有出行计划' : ''}</DialogContentText>
                         <DialogContentText>防疫物资：{this.state.dialogUser.equipment.join(', ') || '无'}</DialogContentText>
                         <DialogContentText>邮件：{this.state.dialogUser.email}</DialogContentText>
                         <DialogContentText>微信：{this.state.dialogUser.wechat}</DialogContentText>
                         <DialogContentText>电话：{this.state.dialogUser.phone}</DialogContentText>
+                        <DialogContentText>{this.state.dialogUser.timeBad ? '--------------' : ''}</DialogContentText>
+                        <DialogContentText>{this.state.dialogUser.timeBad ? '时间冲突 - 备注：' : ''}</DialogContentText>
+                        <DialogContentText>{this.state.dialogUser.timeBad ? this.state.dialogUser.proposedTime : ''}</DialogContentText>
                     </DialogContent>
                     <DialogActions>
-                        <Button onClick={() => this.setState({ dialogOpen: false })}>返回</Button>
+                        <Button onClick={() => this.setState({ dialogOpen: false, reviseDialog: true })}>修改时间</Button>
                         <Button color="primary" onClick={() => this.setState({ dialogOpen: false, confirmDialog: true })}>递送健康包</Button>
                     </DialogActions>
                 </Dialog>
                 <Dialog open={this.state.confirmDialog} onClose={() => this.setState({ confirmDialog: false })}>
-                    <DialogTitle>确认已健康包已经送达{this.state.dialogUser.name} @ {this.state.dialogUser.location}?</DialogTitle>
+                    <DialogTitle>确认已健康包已由 {this.state.dialogUser.name} 自取?</DialogTitle>
                     <DialogContent>
                         <DialogContentText>此操作无法撤回，请再次确认健康包已收到！</DialogContentText>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => this.setState({ confirmDialog: false })}>取消</Button>
                         <Button color="primary" onClick={() => this.deliver()}>确认</Button>
+                    </DialogActions>
+                </Dialog>
+                <Dialog open={this.state.reviseDialog} onClose={() => this.setState({ reviseDialog: false, dialogOpen: true })}>
+                    <DialogTitle>修改 {this.state.dialogUser.name} 的领取时间</DialogTitle>
+                    <DialogContent>
+                    <TextField
+                        label="新的领取时间"
+                        type="text"
+                        placeholder={this.state.dialogUser.time}
+                        autoFocus
+                        onChange={e => {
+                            // this.setState({ nameVal: '' });
+                            this.findLocationAndSort(e.target.value);
+                        }}/>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => this.setState({ reviseDialog: false, dialogOpen: true })}>返回</Button>
+                        <Button color="primary" onClick={() => {}}>确认修改</Button>
                     </DialogActions>
                 </Dialog>
             </div>

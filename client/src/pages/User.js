@@ -19,6 +19,8 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import MuiTextField from '@material-ui/core/TextField';
 import UserStore from '../stores/UserStore';
 
 const symptomsList = [
@@ -28,13 +30,13 @@ const symptomsList = [
 
 const equipmentList = [
   'N95-KN95口罩', '医用口罩', '手套',
-  '消毒湿巾', '退烧药或相关药品', '其它物资'
+  '退烧药或相关药品', '其它物资'
 ];
 
+const locationMap = [ 'Humanities', 'Sheboygan', 'Eagle Heights' ];
+
 const validate = values => {
-    const regexp = /^((\d+)(\s(N|S|E|W|NORTH|SOUTH|EAST|WEST)\.?)?(\s\d+(ST|ND|RD|TH)?)?(\s[A-Za-z]+\.?)*\s(HOUSES|HEIGHTS|HTS|AVENUE|AVE|ROAD|RD|WAY|ROW|BRAE|STREET|ST|COURT|CT|HARBOR|DRIVE|DR|LANE|LN|CIRCLE|CIR|BOULEVARD|BLVD|PARKWAY|PKWY|PASS|MALL|TERRACE|RUN|TRAIL|TRL|PLACE|PL)\.?)(([\w\.\,\s\-\#])*)/i;
-    const regexpStrict = /^((\d+)(\s(N|S|E|W|NORTH|SOUTH|EAST|WEST)\.?)?(\s[A-Za-z]+\.?)*\s(HOUSES|HEIGHTS|HTS|AVENUE|AVE|ROAD|RD|WAY|ROW|BRAE|STREET|ST|COURT|CT|HARBOR|DRIVE|DR|LANE|LN|CIRCLE|CIR|BOULEVARD|BLVD|PARKWAY|PKWY|PASS|MALL|TERRACE|RUN|TRAIL|TRL|PLACE|PL)\.?)(\s*((\d+[A-Z]?)|([A-Z])))?$/i;
-    const errors = {};
+       const errors = {};
     if (!values.name) {
         errors.name = 'Required';
     }
@@ -50,15 +52,6 @@ const validate = values => {
     if (!/^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/.test(values.email)) {
         errors.email = '请确认email格式';
     }
-    // Strict address checking
-    if (values.area <= 1) {
-        if (!regexpStrict.test(values.address)) {
-            errors.address = '请填写 街号 街名 St|Ave|Ln|Rd... (房间号); 房间号前无需加"Apt", "Unit" 等前缀，也无需填写城市名、zipcode等 | Example: 123 College Rd 305';
-        }
-    }
-    else if (!regexp.test(values.address)) {
-        errors.address = '请填写标准US地址: 123 Street Name St|Ave|Pkwy|Ln|Ct|Rd... 房间号|宿舍号...';
-    }
 
     return errors;
 };
@@ -69,18 +62,19 @@ export default function UserPage({ theme }) {
         phone: 0,
         email: '',
         wechat: '',
-        identity: '本科生',
-        area: 0,
-        address: '',
-        addr1: '',
-        addr2: '',
+        time: '',
         kids: false,
         symptoms: [],
         equipment: [],
         info: '',
-        need: false,
-        kitNeeded: false,
         hasKids: false,
+        travel: false,
+        willTravel: false,
+        location: 0,
+        locationText: '',
+        timeOk: false,
+        timeBad: false,
+        proposedTime: '',
     });
     const [exists, setExists] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -88,6 +82,10 @@ export default function UserPage({ theme }) {
     const [visible, setVisible] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [alertDialogOpen, setAlertDialogOpen] = useState(false);
+    const [timeSelectDialogOpen, setTimeSelectDialogOpen] = useState(false);
+    const [timeOkDialogOpen, setTimeOkDialogOpen] = useState(false);
+    const [timeBadDialogOpen, setTimeBadDialogOpen] = useState(false);
+    const [userProposedTime, setUserProposedTime] = useState('');
     const { hash } = useParams();
 
     async function fetchInfo() {
@@ -97,27 +95,90 @@ export default function UserPage({ theme }) {
             setExists(true);
         
             const {
-                name, phone, email, wechat, identity, area, address,
-                addr1, addr2, kids, symptoms, equipment, info, need
+                name, phone, email, wechat, time,
+                kids, symptoms, equipment, info, travel, location,
+                timeOk, timeBad, proposedTime, 
             } = data.user;
 
-            const kitNeeded = need ? 'yes' : 'no';
             const hasKids = kids ? 'yes' : 'no';
+            const willTravel = travel ? 'yes' : 'no';
+            const locationText = locationMap[location];
 
             setUser({
-                name, phone, email, wechat, identity, area, address,
-                addr1, addr2, kids, symptoms, equipment, info, need,
-                kitNeeded, hasKids
+                name, phone, email, wechat, locationText, location,
+                kids, symptoms, equipment, info, hasKids, willTravel, time,
+                timeOk, timeBad, proposedTime,
             });
-            UserStore.wechat = wechat;
+            UserStore.email = email;            
+            
+            // User has not indicated if time is ok or bad
+            if (!timeOk && !timeBad) {
+                setTimeSelectDialogOpen(true);
+            }
         }
 
         setLoading(false);
     }
 
+    async function timeOkConfirm () {
+        const res = await fetch(`/user/${hash}/update`, {
+            method: 'POST',
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(Object.assign({}, user, { timeOk: true, onUserConfirm: true }))
+        });
+        const data = await res.json();
+        
+        const {
+            name, phone, email, wechat, time,
+            kids, symptoms, equipment, info, travel, location,
+            timeOk, timeBad, proposedTime,
+        } = data.user;
+
+        const hasKids = kids ? 'yes' : 'no';
+        const willTravel = travel ? 'yes' : 'no';
+        const locationText = locationMap[location];
+
+        setUser({
+            name, phone, email, wechat, 
+            kids, symptoms, equipment, info, time,
+            hasKids, willTravel, location, locationText,
+            timeOk, timeBad, proposedTime,
+        });
+      
+        setTimeOkDialogOpen(false);
+    }
+    
+    async function timeBadConfirm () {
+      const res = await fetch(`/user/${hash}/update`, {
+          method: 'POST',
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(Object.assign({}, user, { timeBad: true, proposedTime: userProposedTime, onUserConfirm: true }))
+      });
+      const data = await res.json();
+      
+      const {
+          name, phone, email, wechat, time,
+          kids, symptoms, equipment, info, travel, location,
+          timeOk, timeBad, proposedTime,
+      } = data.user;
+
+      const hasKids = kids ? 'yes' : 'no';
+      const willTravel = travel ? 'yes' : 'no';
+      const locationText = locationMap[location];
+
+      setUser({
+          name, phone, email, wechat, 
+          kids, symptoms, equipment, info, time,
+          hasKids, willTravel, location, locationText,
+          timeOk, timeBad, proposedTime,
+      });
+    
+      setTimeBadDialogOpen(false);
+  }
+
     async function finalSubmit (values) {
-        values.need = values.kitNeeded === 'yes';
         values.kids = values.hasKids === 'yes';
+        values.travel = values.willTravel === 'yes';
 
         // Normal submission flow
         const res = await fetch(`/user/${hash}/update`, {
@@ -131,19 +192,22 @@ export default function UserPage({ theme }) {
         if (hash !== data.hash) setRedirect(data.hash);
 
         const {
-            name, phone, email, wechat, identity, area, address,
-            addr1, addr2, kids, symptoms, equipment, info, need
+            name, phone, email, wechat, time,
+            kids, symptoms, equipment, info, travel, location,
+            timeOk, timeBad, proposedTime,
         } = data.user;
 
-        const kitNeeded = need ? 'yes' : 'no';
         const hasKids = kids ? 'yes' : 'no';
+        const willTravel = travel ? 'yes' : 'no';
+        const locationText = locationMap[location];
 
         setUser({
-            name, phone, email, wechat, identity, area, address,
-            addr1, addr2, kids, symptoms, equipment, info, need,
-            kitNeeded, hasKids
+            name, phone, email, wechat, 
+            kids, symptoms, equipment, info, time,
+            hasKids, willTravel, location, locationText,
+            timeOk, timeBad, proposedTime,
         });
-        UserStore.wechat = wechat;
+        UserStore.email = email;
 
         setVisible(true);
         setTimeout(() => {
@@ -157,7 +221,7 @@ export default function UserPage({ theme }) {
         const res = await fetch('/user/unique', {
             method: 'POST',
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ wechat: values.wechat })
+            body: JSON.stringify({ email: values.email })
         });
         const data = await res.json();
         if (!data.available) {
@@ -170,7 +234,7 @@ export default function UserPage({ theme }) {
 
     async function onSubmit (values) {
         UserStore.values = values;
-        if (values.wechat.toLowerCase() !== UserStore.wechat) {
+        if (values.email.toLowerCase() !== UserStore.email) {
             setDialogOpen(true);
         }
         
@@ -208,35 +272,6 @@ export default function UserPage({ theme }) {
           <form onSubmit={handleSubmit} noValidate>
             <Paper style={{ padding: 16 }}>
               <Grid container alignItems="flex-start" spacing={2}>
-                <Grid item xs={12}>
-                  <FormControl component="fieldset">
-                    <FormLabel component="legend">是否需要健康包</FormLabel>
-                    <RadioGroup row>
-                      <FormControlLabel
-                        label="需要"
-                        control={
-                          <Field
-                            name="kitNeeded"
-                            component={Radio}
-                            type="radio"
-                            value="yes"
-                          />
-                        }
-                      />
-                      <FormControlLabel
-                        label="不需要"
-                        control={
-                          <Field
-                            name="kitNeeded"
-                            component={Radio}
-                            type="radio"
-                            value="no"
-                          />
-                        }
-                      />
-                    </RadioGroup>
-                  </FormControl>
-                </Grid>
                 <Grid item xs={4}>
                   <Field
                     fullWidth
@@ -267,7 +302,7 @@ export default function UserPage({ theme }) {
                     label="微信号"
                   />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid item xs={5}>
                   <Field
                     name="email"
                     fullWidth
@@ -277,70 +312,27 @@ export default function UserPage({ theme }) {
                     label="Email"
                   />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid item xs={3}>
                   <Field
-                    fullWidth
-                    required
-                    name="area"
-                    component={Select}
-                    label="麦迪逊住址"
-                    formControlProps={{ fullWidth: true }}
-                  >
-                    <MenuItem value={0}>校园周围公寓/House</MenuItem>
-                    <MenuItem value={1}>学校宿舍</MenuItem>
-                    <MenuItem value={2}>Sheboygan区域</MenuItem>
-                    <MenuItem value={3}>Eagle Heights区域</MenuItem>
-                    <MenuItem value={4}>其它麦迪逊周边区域</MenuItem>
-                    <MenuItem value={8}>不在麦迪逊附近</MenuItem>
-                  </Field>
-                </Grid>
-                <Grid item xs={12}>
-                  <Field
-                    name="address"
-                    fullWidth
-                    required
-                    component={TextField}
-                    type="address"
-                    label="详细地址（具体到门牌号）"
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  <Field
-                    name="addr1"
+                    name="locationText"
                     fullWidth
                     disabled
                     component={TextField}
-                    type="address"
-                    label="解析地址 PART 1"
+                    type="text"
+                    label="领取地点"
                   />
                 </Grid>
-                <Grid item xs={6}>
+                <Grid item xs={4}>
                   <Field
-                    name="addr2"
+                    name="time"
                     fullWidth
                     disabled
                     component={TextField}
-                    type="address"
-                    label="解析地址 PART 2"
+                    type="text"
+                    label={user.timeBad ? '时间待定 邮件通知' : '领取时间'}
                   />
                 </Grid>
-                <Grid item xs={12}>
-                  <Field
-                    fullWidth
-                    required
-                    name="identity"
-                    component={Select}
-                    label="身份"
-                    formControlProps={{ fullWidth: true }}
-                  >
-                    <MenuItem value="国家公派留学人员">国家公派留学人员</MenuItem>
-                    <MenuItem value="本科生">本科生</MenuItem>
-                    <MenuItem value="研究生">研究生</MenuItem>
-                    <MenuItem value="交换生">交换生</MenuItem>
-                    <MenuItem value="访问学者">访问学者</MenuItem>
-                  </Field>
-                </Grid>
-                <Grid item xs={12}>
+                <Grid item xs={6}>
                   <FormControl component="fieldset">
                     <FormLabel component="legend">是否携带子女</FormLabel>
                     <RadioGroup row>
@@ -360,6 +352,35 @@ export default function UserPage({ theme }) {
                         control={
                           <Field
                             name="hasKids"
+                            component={Radio}
+                            type="radio"
+                            value="no"
+                          />
+                        }
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={6}>
+                  <FormControl component="fieldset">
+                    <FormLabel component="legend">是否有出行计划</FormLabel>
+                    <RadioGroup row>
+                      <FormControlLabel
+                        label="是"
+                        control={
+                          <Field
+                            name="willTravel"
+                            component={Radio}
+                            type="radio"
+                            value="yes"
+                          />
+                        }
+                      />
+                      <FormControlLabel
+                        label="否"
+                        control={
+                          <Field
+                            name="willTravel"
                             component={Radio}
                             type="radio"
                             value="no"
@@ -424,14 +445,17 @@ export default function UserPage({ theme }) {
                 </Grid>
               </Grid>
             </Paper>
-            <Collapse in={visible}>
+          </form>
+        )}
+      />
+      <Collapse in={visible}>
                 <Alert severity="success">信息更新成功！</Alert>
             </Collapse>
             {/* <Typography variant="h6" align="center" component="h1" gutterBottom>
                 {`${window.location.origin}/user/${hash}`}
             </Typography> */}
             <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
-                <DialogTitle>修改微信号将会同时修改您的主页URL。确认继续吗？</DialogTitle>
+                <DialogTitle>修改email将会同时修改您的主页URL。确认继续吗？</DialogTitle>
                 <DialogContent>
                     <DialogActions visible={false}>
                         <Button onClick={() => setDialogOpen(false)}>取消</Button>
@@ -440,18 +464,47 @@ export default function UserPage({ theme }) {
                 </DialogContent>
             </Dialog>
             <Dialog open={alertDialogOpen} onClose={() => setAlertDialogOpen(false)}>
-                <DialogTitle>此微信名重复，请重新填写</DialogTitle>
+                <DialogTitle>此email重复，请重新填写</DialogTitle>
                 <DialogContent>
                     <DialogActions>
                         <Button color="primary" onClick={() => setAlertDialogOpen(false)}>OK</Button>
                     </DialogActions>
                 </DialogContent>
             </Dialog>
+            <Dialog open={timeSelectDialogOpen}>
+                <DialogTitle>{user.name}, 请您确认领取健康包的时间：{user.time}</DialogTitle>
+                <DialogActions>
+                    <Button onClick={() => {setTimeSelectDialogOpen(false); setTimeOkDialogOpen(true);}}>确认可以领取</Button>
+                    <Button onClick={() => {setTimeSelectDialogOpen(false); setTimeBadDialogOpen(true);}}>时间冲突</Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog open={timeOkDialogOpen}>
+                <DialogTitle>您领取健康包的时间和地点是：{user.time} @ {locationMap[user.location]}</DialogTitle>
+                <DialogActions>
+                    <Button onClick={() => {setTimeSelectDialogOpen(true); setTimeOkDialogOpen(false);}}>返回</Button>
+                    <Button color="primary" onClick={timeOkConfirm}>确认可以领取</Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog open={timeBadDialogOpen}>
+                <DialogTitle>请在下方填写您方便的时间段</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>我们的工作人员将会再次给您分配一个时间，请查收邮件通知</DialogContentText>
+                    <MuiTextField
+                      autoFocus
+                      fullWidth
+                      type="text"
+                      label={"原定时间：" + user.time}
+                      onChange={e => {
+                          setUserProposedTime(e.target.value);
+                      }}
+                    />
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => {setTimeSelectDialogOpen(true); setTimeBadDialogOpen(false);}}>返回</Button>
+                        <Button color="primary" onClick={timeBadConfirm}>确认时间段</Button>
+                    </DialogActions>
+            </Dialog>
             {/* <pre>{JSON.stringify(values, 0, 2)}</pre> */}
-          </form>
-        )}
-      />
     </div>
   );
 }
-

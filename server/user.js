@@ -24,6 +24,12 @@ router.post('/:hash/update', async (req, res) => {
     const user = await User.findOneAndUpdate({ email }, userObj);
     if (!user) return res.json({ error: 'USER_NOT_FOUND' });
 
+    if (form.onUserConfirm) {
+        const { io } = res.locals;
+        const { timeOk, timeBad, proposedTime } = userObj;
+        io.emit('userConfirm', { email, timeOk, timeBad, proposedTime })
+    }
+
     return res.json({ user: {...userObj}, hash: encode(userObj.email) });
 });
 
@@ -54,8 +60,8 @@ function getUpdatedUser(user) {
     const phone = +user.phone;
     const email = user.email.trim().toLowerCase();
     const wechat = user.wechat.trim().toLowerCase();
-    const normalizedAddr = normalizeAddress(user.address);
-    const { kids, symptoms, equipment } = user;
+    const { kids, symptoms, equipment, travel, time } = user;
+    const { timeOk, timeBad, proposedTime } = user;
     const priority = kids || symptoms.length > 0 || equipment.length === 0;
 
     return {
@@ -65,10 +71,15 @@ function getUpdatedUser(user) {
         wechat,
         location: user.location,
         kids: Boolean(kids),
+        travel,
         symptoms,
         equipment,
         info: user.info || '',
         priority,
+        time, 
+        timeOk,
+        timeBad,
+        proposedTime,
         receivedKit: user.receivedKit
     };
 }

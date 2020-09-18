@@ -52,10 +52,18 @@ fs.createReadStream(FILENAME)
         const phone = +user.phone;
         const email = user.email.trim().toLowerCase();
         const wechat = user.wechat.trim().toLowerCase();
-        const area = +user.area.substring(0, 1);
+        const time = user.time.trim().toLowerCase();
         const kids = user.kids === '是';
-        const symptoms = [], equipment = [];
+        const travel = user.travel === '是';
+        const receivedKit = user.receivedKit === '是';
+        const info = user.info;
 
+        const HUMANITIES = /^human/i;
+        const SHEBOYGAN = /^she/i;
+        const location = HUMANITIES.test(user.location) ? 0
+            : SHEBOYGAN.test(user.location) ? 1 : 2;
+
+        const symptoms = [], equipment = [];
         if (user.symptoms.indexOf('无') < 0) {
             for (const s of user.symptoms.split(', ')) symptoms.push(s);
         }
@@ -64,9 +72,7 @@ fs.createReadStream(FILENAME)
             for (const e of user.equipment.split(', ')) equipment.push(e);
         }
 
-        const normalizedAddr = normalizeAddress(user.address);
-
-        const priority = kids || symptoms.length > 0 || equipment.length === 0;
+        const priority = kids || symptoms.length > 0 || equipment.length === 0 || travel;
 
         const userObj = {
             timestamp,
@@ -74,15 +80,14 @@ fs.createReadStream(FILENAME)
             phone,
             email,
             wechat,
-            identity: user.identity,
-            area,
-            address: user.address.trim(),
-            addr1: normalizedAddr[0],
-            addr2: normalizedAddr[1],
+            time,
+            location,
             kids,
+            travel,
             symptoms,
             equipment,
-            info: user.info,
+            receivedKit,
+            info,
             priority
         };
 

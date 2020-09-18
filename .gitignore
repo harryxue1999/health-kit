@@ -6,4 +6,5 @@ desktop.ini
 *.csv
 compile/templates
 server/adminlist.json
+sendmail.js
 settings.json

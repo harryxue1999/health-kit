@@ -14,7 +14,10 @@ const path = require('path');
 const { User } = require('./database');
 const mustache = require('mustache');
 const mailgun = require('./mailgun');
-const template = fs.readFileSync(path.join(__dirname, '../compile/templates/delivered.html'), 'utf-8');
+const template = {
+    delivered: fs.readFileSync(path.join(__dirname, '../compile/templates/delivered.html'), 'utf-8'),
+    timeChanged: '',
+};
 
 const TOKEN_LINK = 'https://accounts.google.com/o/oauth2/v2/auth?' + querystring.stringify({
     client_id: settings.client.id,
@@ -28,11 +31,11 @@ router.post('/status', (req, res) => {
     const ssn = req.session;
     
     // Debug purposes
-    // ssn.loggedIn = true;
-    // ssn.hasPerm = true;
-    // ssn.adminName = 'Awesome Tester';
-    // ssn.adminEmail = 'tester@awesome.com';
-    // ssn.adminPerm = '.*';
+    ssn.loggedIn = true;
+    ssn.hasPerm = true;
+    ssn.adminName = 'Awesome Tester';
+    ssn.adminEmail = 'tester@awesome.com';
+    ssn.adminPerm = '.*';
 
     if (!ssn.loggedIn) return res.json({ loggedIn: false });
 
@@ -41,6 +44,41 @@ router.post('/status', (req, res) => {
         hasPerm: ssn.hasPerm,
         email: ssn.adminEmail,
         name: ssn.adminName
+    });
+});
+
+router.post('/time', async (req, res) => {
+    const ssn = req.session;
+    if (!ssn.loggedIn || !ssn.hasPerm) return res.json({ error: 'NO_PERMISSION' });
+
+    const { email, newTime } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) return res.json({ error: 'NO_SUCH_USER' });
+
+    const newUser = await user.updateOne({
+        time: newTime,
+        timeOk: false,
+        timeBad: false,
+        timeRevised: true,
+    });
+
+    if (!newUser) return res.json({ error: 'UNKNOWN_USER' });
+
+    const { io } = res.locals;
+    io.emit('timeChange', { email, newTime });
+
+    const { name, area } = user;
+    const isOnCampus = area === 0 || area === 1 || area === 4;
+    const isSheboygan = area === 2;
+    const isEagleHeights = area === 3;
+
+    // Send email
+    let emailContent = mustache.render(template.timeChanged, {
+        name,
+        isOnCampus,
+        isSheboygan,
+        isEagleHeights,
     });
 });
 
@@ -60,14 +98,14 @@ router.post('/deliver', async (req, res) => {
     const { io } = res.locals;
     io.emit('delivery', { email });
 
-    const { name, area } = user;
-    const isOnCampus = area === 0 || area === 1 || area === 4;
-    const isSheboygan = area === 2;
-    const isEagleHeights = area === 3;
+    const { name, location } = user;
+    const isHumanities = location === 0;
+    const isSheboygan = location === 1;
+    const isEagleHeights = location === 2;
     // Send email
-    let emailContent = mustache.render(template, {
+    let emailContent = mustache.render(template.delivered, {
         name,
-        isOnCampus,
+        isHumanities,
         isSheboygan,
         isEagleHeights,
     });
