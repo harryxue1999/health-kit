@@ -52,7 +52,7 @@ export default class AdminPage extends React.Component {
             error: false,
             nameVal: '',
             addrVal: '',
-            deliverable: false,
+            conflict: false,
         };
     }
 
@@ -103,6 +103,20 @@ export default class AdminPage extends React.Component {
                 this.setState({ error: false });
             }, 5000);
         }
+    }
+
+    async reviseTime() {
+        const { dialogUser } = this.state;
+        const { email, newTime } = dialogUser;
+
+        const res = await fetch('/admin/time', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, newTime })
+        });
+        const data = await res.json();
+
+        this.setState({ reviseDialog: false });
     }
 
     // Socket delivery event emitted
@@ -217,12 +231,12 @@ export default class AdminPage extends React.Component {
         this.setState({ sorted, pageNum: 1 });
     }
 
-    showOnlyDeliverable(option) {
+    showOnlyConflict(option) {
         const { sorted, users } = this.state;
 
         if (option) return this.setState({ sorted: users });
 
-        const newSorted = sorted.filter(a => a.area <= 4);
+        const newSorted = sorted.filter(a => a.timeBad);
 
         this.setState({ sorted: newSorted });
     }
@@ -264,12 +278,13 @@ export default class AdminPage extends React.Component {
                     <FormControl component="fieldset">
                         <FormGroup>
                             <FormControlLabel
-                                control={<Checkbox name="deliverable"
-                                checked={this.state.deliverable}/>}
+                                control={<Checkbox name="conflict"
+                                checked={this.state.conflict}/>}
                                 onChange={e => {
-                                   
+                                    this.setState({ conflict: !this.state.conflict });
+                                    this.showOnlyConflict(this.state.conflict);
                                 }}
-                                label="没有用的选项框"
+                                label="仅显示时间冲突"
                             />
                         </FormGroup>
                     </FormControl>
@@ -359,12 +374,14 @@ export default class AdminPage extends React.Component {
                         autoFocus
                         onChange={e => {
                             // this.setState({ nameVal: '' });
-                            this.findLocationAndSort(e.target.value);
+                            const dialogUser = {...this.state.dialogUser};
+                            dialogUser.newTime = e.target.value;
+                            this.setState({ dialogUser });
                         }}/>
                     </DialogContent>
                     <DialogActions>
                         <Button onClick={() => this.setState({ reviseDialog: false, dialogOpen: true })}>返回</Button>
-                        <Button color="primary" onClick={() => {}}>确认修改</Button>
+                        <Button color="primary" onClick={() => this.reviseTime()}>确认修改</Button>
                     </DialogActions>
                 </Dialog>
             </div>

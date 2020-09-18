@@ -70,18 +70,15 @@ router.post('/time', async (req, res) => {
     const { io } = res.locals;
     io.emit('timeChange', { email, newTime });
 
-    const { name, area } = user;
-    const isOnCampus = area === 0 || area === 1 || area === 4;
-    const isSheboygan = area === 2;
-    const isEagleHeights = area === 3;
-
     // Send email
-    let emailContent = mustache.render(template.timeChanged, {
-        name,
-        isOnCampus,
-        isSheboygan,
-        isEagleHeights,
-    });
+    const { location } = user;
+    const isHumanities = location === 0;
+    const isSheboygan = location === 1;
+    const isEagleHeights = location === 2;
+
+    // TODO
+
+    return res.json({ status: "SUCCESS" });
 });
 
 router.post('/deliver', async (req, res) => {
