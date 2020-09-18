@@ -31,11 +31,11 @@ router.post('/status', (req, res) => {
     const ssn = req.session;
     
     // Debug purposes
-    ssn.loggedIn = true;
-    ssn.hasPerm = true;
-    ssn.adminName = 'Awesome Tester';
-    ssn.adminEmail = 'tester@awesome.com';
-    ssn.adminPerm = '.*';
+    // ssn.loggedIn = true;
+    // ssn.hasPerm = true;
+    // ssn.adminName = 'Awesome Tester';
+    // ssn.adminEmail = 'tester@awesome.com';
+    // ssn.adminPerm = '.*';
 
     if (!ssn.loggedIn) return res.json({ loggedIn: false });
 
