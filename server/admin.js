@@ -110,7 +110,7 @@ router.post('/deliver', async (req, res) => {
     });
 
     const response = await mailgun.send({
-        subject: isOnCampus ? '健康包：已送达' : '健康包：已自取',
+        subject: '健康包自取回执',
         to: user.email,
         html: emailContent
     });
