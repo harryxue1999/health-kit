@@ -5,7 +5,9 @@ const router = require('express').Router();
 const request = require('request-promise');
 const url = require('url');
 const querystring = require('querystring');
+const crypto = require('crypto');
 const settings = require('./settings.json');
+const { KEY, IV, DEBUG } = settings;
 const adminlist = require('./adminlist.json');
 const parse = addr => querystring.parse(url.parse(addr).query);
 const fs = require('fs');
@@ -16,7 +18,7 @@ const mustache = require('mustache');
 const mailgun = require('./mailgun');
 const template = {
     delivered: fs.readFileSync(path.join(__dirname, '../compile/templates/delivered.html'), 'utf-8'),
-    timeChanged: '',
+    timeChanged: fs.readFileSync(path.join(__dirname, '../compile/templates/f20_proposedTime.html'), 'utf-8'),
 };
 
 const TOKEN_LINK = 'https://accounts.google.com/o/oauth2/v2/auth?' + querystring.stringify({
@@ -31,7 +33,7 @@ router.post('/status', (req, res) => {
     const ssn = req.session;
     
     // Debug purposes
-    if (settings.DEBUG) {
+    if (DEBUG) {
         ssn.loggedIn = true;
         ssn.hasPerm = true;
         ssn.adminName = 'Awesome Tester';
@@ -71,14 +73,35 @@ router.post('/time', async (req, res) => {
     io.emit('timeChange', { email, newTime });
 
     // Send email
-    const { location } = user;
+    const { name, location, proposedTime } = user;
     const isHumanities = location === 0;
     const isSheboygan = location === 1;
     const isEagleHeights = location === 2;
+    const locationMap = [
+        'Campus - Humanities Building (455 N Park St)',
+        'Sheboygan (401 N Eau Claire Ave)',
+        'Eagle Heights (902 Eagle Heights Apt E)',
+    ]
 
-    // TODO
+    // Send email
+    let emailContent = mustache.render(template.timeChanged, {
+        name,
+        isHumanities,
+        isSheboygan,
+        isEagleHeights,
+        time: newTime,
+        proposedTime,
+        locationText: locationMap[location],
+        url: `https://relief.cssawisc.org/user/${encode(user.email)}`,
+    });
 
-    return res.json({ status: "SUCCESS" });
+    const response = await mailgun.send({
+        subject: `健康包领取时间修改确认（${newTime}）`,
+        to: email,
+        html: emailContent
+    });
+
+    return res.json({ success: 'SUCCESS', response });
 });
 
 router.post('/deliver', async (req, res) => {
@@ -242,6 +265,31 @@ function getUserEmail (req) {
         log('Logged in to admin portal: %s <%s> (%s)', ssn.adminName, ssn.adminEmail, ssn.ip);
         return Promise.resolve();
     }).catch(err => Promise.reject(err));
+}
+
+function encode(text) {
+    let iv = Buffer.from(IV, 'hex');
+    let cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(KEY), iv);
+    let encrypted = cipher.update(text);
+   
+    encrypted = Buffer.concat([encrypted, cipher.final()]);
+   
+    return encrypted.toString('hex');
+}
+   
+function decode(text) {
+    try {
+        let iv = Buffer.from(IV, 'hex');
+        let encryptedText = Buffer.from(text, 'hex');
+        let decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(KEY), iv);
+        let decrypted = decipher.update(encryptedText);
+    
+        decrypted = Buffer.concat([decrypted, decipher.final()]);
+   
+        return decrypted.toString();
+    } catch (e) {
+        return '';
+    }
 }
 
 module.exports = router;
