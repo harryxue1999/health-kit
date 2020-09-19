@@ -65,6 +65,7 @@ router.post('/time', async (req, res) => {
         timeOk: false,
         timeBad: false,
         timeRevised: true,
+        linkViewed: false,
     });
 
     if (!newUser) return res.json({ error: 'UNKNOWN_USER' });
