@@ -125,16 +125,20 @@ router.post('/deliver', async (req, res) => {
     const isHumanities = location === 0;
     const isSheboygan = location === 1;
     const isEagleHeights = location === 2;
+    const date = new Date(Date.now() - 300*60*1000);
+    const deliveryTime = `${date.getUTCHours()}:${date.getUTCMinutes()}`;
+    const deliveryDateTime = `${date.getUTCMonth()+1}/${date.getUTCDate()} ${date.getUTCHours()}:${date.getUTCMinutes()}`;
     // Send email
     let emailContent = mustache.render(template.delivered, {
         name,
         isHumanities,
         isSheboygan,
         isEagleHeights,
+        deliveryTime,
     });
 
     const response = await mailgun.send({
-        subject: '健康包自取回执',
+        subject: `健康包自取回执: ${deliveryDateTime}`,
         to: user.email,
         html: emailContent
     });
