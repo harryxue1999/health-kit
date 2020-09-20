@@ -182,7 +182,7 @@ export default class AdminPage extends React.Component {
             return (
                 <TableRow key={user.email}>
                     <TableCell>
-                        <Fab color={user.priority ? "primary" : "inherit"} size="small" onClick={() => this.showDialog(user)}>
+                        <Fab color={user.symptoms.length > 0 ? "primary" : "inherit"} size="small" onClick={() => this.showDialog(user)}>
                             {!user.timeOk && !user.timeBad ? (<ContactSupportIcon/>) : user.timeBad ? (<WarningIcon/>) : (<AssignmentTurnedInIcon/>)}
                         </Fab>
                     </TableCell>
