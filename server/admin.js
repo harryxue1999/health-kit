@@ -105,6 +105,12 @@ router.post('/time', async (req, res) => {
     return res.json({ success: 'SUCCESS', response });
 });
 
+Number.prototype.pad = function(size) {
+    var s = String(this);
+    while (s.length < (size || 2)) {s = "0" + s;}
+    return s;
+}
+
 router.post('/deliver', async (req, res) => {
     const ssn = req.session;
     if (!ssn.loggedIn || !ssn.hasPerm) return res.json({ error: 'NO_PERMISSION' });
@@ -126,8 +132,8 @@ router.post('/deliver', async (req, res) => {
     const isSheboygan = location === 1;
     const isEagleHeights = location === 2;
     const date = new Date(Date.now() - 300*60*1000);
-    const deliveryTime = `${date.getUTCHours()}:${date.getUTCMinutes()}`;
-    const deliveryDateTime = `${date.getUTCMonth()+1}/${date.getUTCDate()} ${date.getUTCHours()}:${date.getUTCMinutes()}`;
+    const deliveryTime = `${date.getUTCHours()}:${date.getUTCMinutes().pad(2)}`;
+    const deliveryDateTime = `${date.getUTCMonth()+1}/${date.getUTCDate()} ${date.getUTCHours()}:${date.getUTCMinutes().pad(2)}`;
     // Send email
     let emailContent = mustache.render(template.delivered, {
         name,
